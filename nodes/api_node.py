@@ -6,7 +6,16 @@ import torch
 import os
 import configparser
 import time
+from enum import Enum
 from urllib.parse import urljoin
+
+class Status(Enum):
+    TASK_NOT_FOUND = "Task not found"
+    PENDING = "Pending"
+    REQUEST_MODERATED = "Request Moderated"
+    CONTENT_MODERATED = "Content Moderated"
+    READY = "Ready"
+    ERROR = "Error"
 
 class ConfigLoader:
     def __init__(self):
@@ -82,7 +91,11 @@ class BaseFlux:
             print(f"Error initiating request: {response.status_code}, {response.text}")
             return None
 
-    def get_result(self, task_id):
+    def get_result(self, task_id, attempt=1, max_attempts=10):
+        if attempt > max_attempts:
+            print(f"Max attempts reached for task_id {task_id}. Image not ready.")
+            return self.create_blank_image()
+        
         get_url = config_loader.create_url(f"get_result?id={task_id}")
         headers = {"x-key": os.environ["X_KEY"]}
         result_response = requests.get(get_url, headers=headers)
@@ -90,10 +103,15 @@ class BaseFlux:
         if result_response.status_code == 200:
             try:
                 result = result_response.json()
-                if result and "result" in result and "sample" in result["result"]:
+                status = result.get("status")
+                if Status(status) == Status.READY:
                     return self.process_result(result)
+                elif Status(status) == Status.PENDING:
+                    print(f"Attempt {attempt}: Image not ready, status is '{status}'. Retrying in 5 seconds...")
+                    time.sleep(5)
+                    return self.get_result(task_id, attempt + 1, max_attempts)
                 else:
-                    print(f"Error: Unexpected response structure: {result}")
+                    print(f"Error: Unexpected status '{status}'")
                     return self.create_blank_image()
             except ValueError as e:
                 print(f"Error parsing JSON response: {str(e)}")
@@ -109,7 +127,7 @@ class BaseFlux:
         try:
             task_id = self.post_request(url_path, arguments)
             if task_id:
-                time.sleep(5)
+                print(f"Task ID '{task_id}'")
                 return self.get_result(task_id)
             return self.create_blank_image()
         except Exception as e:
