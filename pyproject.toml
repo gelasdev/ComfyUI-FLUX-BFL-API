@@ -1,0 +1,15 @@
+[project]
+name = "comfyui-flux-bfl-api"
+description = "Custom nodes for integrating Flux models with the BFL API."
+version = "1.0.0"
+license = {file = "LICENSE"}
+dependencies = ["torch"]
+
+[project.urls]
+Repository = "https://github.com/gelasdev/ComfyUI-FLUX-BFL-API"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI-FLUX-BFL-API"
+Icon = ""
