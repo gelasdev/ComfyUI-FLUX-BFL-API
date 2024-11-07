@@ -159,7 +159,7 @@ class FluxPro11(BaseFlux):
             }
         }
 
-    def generate_image(self, prompt, width, height, prompt_upsampling, safety_tolerance, output_format="jpeg", seed=-1):
+    def generate_image(self, prompt, width, height, prompt_upsampling, safety_tolerance, output_format, seed):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -188,11 +188,11 @@ class FluxDev(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": 42})
+                "seed": ("INT", {"default": -1})
             }
         }
 
-    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format="jpeg", seed=42):
+    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format, seed):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -202,8 +202,9 @@ class FluxDev(BaseFlux):
             "safety_tolerance": safety_tolerance,
             "guidance": guidance,
             "output_format": output_format,
-            "seed": seed
         }
+        if seed != -1:
+            arguments["seed"] = seed
         return super().generate_image("flux-dev", arguments)
 
 
@@ -223,11 +224,11 @@ class FluxPro(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": 42})
+                "seed": ("INT", {"default": -1})
             }
         }
 
-    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, interval, output_format="jpeg", seed=42):
+    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, interval, output_format, seed):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -238,8 +239,9 @@ class FluxPro(BaseFlux):
             "guidance": guidance,
             "interval": interval,
             "output_format": output_format,
-            "seed": seed
         }
+        if seed != -1:
+            arguments["seed"] = seed
         return super().generate_image("flux-pro", arguments)
 
 
@@ -255,19 +257,20 @@ class FluxPro11Ultra(BaseFlux):
                 "raw": ("BOOLEAN", {"default": False})
             },
             "optional": {
-                "seed": ("INT", {"default": 42})
+                "seed": ("INT", {"default": -1})
             }
         }
 
-    def generate_image(self, prompt, aspect_ratio, safety_tolerance, output_format="jpeg", raw=False, seed=42):
+    def generate_image(self, prompt, aspect_ratio, safety_tolerance, output_format, raw, seed):
         arguments = {
             "prompt": prompt,
-            "seed": seed,
             "aspect_ratio": aspect_ratio,
             "safety_tolerance": safety_tolerance,
             "output_format": output_format,
             "raw": raw
         }
+        if seed != -1:
+            arguments["seed"] = seed
         return super().generate_image("flux-pro-1.1-ultra", arguments)
 
 
