@@ -1,9 +1,16 @@
 # ComfyUI-FLUX-BFL-API
+
 Custom nodes for integrating Flux models with the BFL API.
 
 ## Installation
 
-To get started with ComfyUI-FLUX-BFL-API, follow these steps:
+### Option 1: Install via Custom Nodes Manager
+
+1. Open the Custom Nodes Manager.
+2. Search for "ComfyUI-FLUX-BFL-API".
+3. Select the package and follow the installation instructions.
+
+### Option 2: Manual Installation
 
 1. Clone the repository:
     ```bash
@@ -28,6 +35,6 @@ To get started with ComfyUI-FLUX-BFL-API, follow these steps:
 
 After setting up, you can begin using the custom nodes with Flux models through the BFL API.
 
-## Example
+## Workflow
 
-![image](https://github.com/user-attachments/assets/7cd71a76-68da-445a-83c2-878fd9c77320)
+An example workflow has been added to the `workflow` folder. To use it:
