@@ -54,15 +54,21 @@ class BaseFlux:
     FUNCTION = "generate_image"
     CATEGORY = "BFL"
 
-    def process_result(self, result):
+    def process_result(self, result, output_format="jpeg"):
         try:
             sample_url = result['result']['sample']
             img_response = requests.get(sample_url)
             img = Image.open(io.BytesIO(img_response.content))
-            img_array = np.array(img).astype(np.float32) / 255.0
-            img_tensor = torch.from_numpy(img_array)[None,]
-            img.show()
-            return (img_tensor,)
+            
+            with io.BytesIO() as output:
+                img.save(output, format=output_format.upper())
+                output.seek(0)
+                img_converted = Image.open(output)
+
+                img_array = np.array(img_converted).astype(np.float32) / 255.0
+                img_tensor = torch.from_numpy(img_array)[None,]
+                img_converted.show()
+                return (img_tensor,)
         except KeyError as e:
             print(f"KeyError: Missing expected key {e}")
             return self.create_blank_image()
@@ -91,7 +97,7 @@ class BaseFlux:
             print(f"Error initiating request: {response.status_code}, {response.text}")
             return None
 
-    def get_result(self, task_id, attempt=1, max_attempts=10):
+    def get_result(self, task_id, output_format="jpeg", attempt=1, max_attempts=10):
         if attempt > max_attempts:
             print(f"Max attempts reached for task_id {task_id}. Image not ready.")
             return self.create_blank_image()
@@ -105,11 +111,11 @@ class BaseFlux:
                 result = result_response.json()
                 status = result.get("status")
                 if Status(status) == Status.READY:
-                    return self.process_result(result)
+                    return self.process_result(result, output_format=output_format)
                 elif Status(status) == Status.PENDING:
                     print(f"Attempt {attempt}: Image not ready, status is '{status}'. Retrying in 5 seconds...")
                     time.sleep(5)
-                    return self.get_result(task_id, attempt + 1, max_attempts)
+                    return self.get_result(task_id, output_format, attempt + 1, max_attempts)
                 else:
                     print(f"Error: Unexpected status '{status}'")
                     return self.create_blank_image()
@@ -122,13 +128,14 @@ class BaseFlux:
             return self.create_blank_image()
 
     def generate_image(self, url_path, arguments):
-        self.check_multiple_of_32(arguments["width"], arguments["height"])
+        if "width" in arguments and "height" in arguments:
+            self.check_multiple_of_32(arguments["width"], arguments["height"])
 
         try:
             task_id = self.post_request(url_path, arguments)
             if task_id:
                 print(f"Task ID '{task_id}'")
-                return self.get_result(task_id)
+                return self.get_result(task_id, output_format=arguments.get("output_format", "jpeg"))
             return self.create_blank_image()
         except Exception as e:
             print(f"Error generating image: {str(e)}")
@@ -143,23 +150,23 @@ class FluxPro11(BaseFlux):
                 "prompt": ("STRING", {"default": "", "multiline": True}),
                 "width": ("INT", {"default": 1440, "min": 256, "max": 1440}),
                 "height": ("INT", {"default": 1440, "min": 256, "max": 1440}),
-                "prompt_upsampling": ("BOOLEAN", {"default": True}),
-                "steps": ("INT", {"default": 2, "min": 1, "max": 100}),
-                "safety_tolerance": (["1", "2", "3", "4", "5", "6"], {"default": "2"}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
                 "seed": ("INT", {"default": -1})
             }
         }
 
-    def generate_image(self, prompt, width, height, prompt_upsampling, steps, safety_tolerance, seed=-1):
+    def generate_image(self, prompt, width, height, prompt_upsampling, safety_tolerance, output_format="jpeg", seed=-1):
         arguments = {
             "prompt": prompt,
             "width": width,
             "height": height,
             "prompt_upsampling": prompt_upsampling,
-            "steps": steps,
-            "safety_tolerance": safety_tolerance
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
         }
         if seed != -1:
             arguments["seed"] = seed
@@ -174,17 +181,18 @@ class FluxDev(BaseFlux):
                 "prompt": ("STRING", {"default": "", "multiline": True}),
                 "width": ("INT", {"default": 1024, "min": 256, "max": 1440}),
                 "height": ("INT", {"default": 768, "min": 256, "max": 1440}),
-                "steps": ("INT", {"default": 28, "min": 1, "max": 100}),
+                "steps": ("INT", {"default": 28, "min": 1, "max": 50}),
                 "prompt_upsampling": ("BOOLEAN", {"default": False}),
-                "safety_tolerance": (["1", "2", "3", "4", "5", "6"], {"default": "2"}),
-                "guidance": ("INT", {"default": 3, "min": 1, "max": 10}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "guidance": ("FLOAT", {"default": 3, "min": 1.5, "max": 5}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
                 "seed": ("INT", {"default": 42})
             }
         }
 
-    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, seed=42):
+    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format="jpeg", seed=42):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -193,6 +201,7 @@ class FluxDev(BaseFlux):
             "prompt_upsampling": prompt_upsampling,
             "safety_tolerance": safety_tolerance,
             "guidance": guidance,
+            "output_format": output_format,
             "seed": seed
         }
         return super().generate_image("flux-dev", arguments)
@@ -206,18 +215,19 @@ class FluxPro(BaseFlux):
                 "prompt": ("STRING", {"default": "", "multiline": True}),
                 "width": ("INT", {"default": 1024, "min": 256, "max": 1440}),
                 "height": ("INT", {"default": 768, "min": 256, "max": 1440}),
-                "steps": ("INT", {"default": 40, "min": 1, "max": 100}),
+                "steps": ("INT", {"default": 40, "min": 1, "max": 50}),
                 "prompt_upsampling": ("BOOLEAN", {"default": False}),
-                "safety_tolerance": (["1", "2", "3", "4", "5", "6"], {"default": "2"}),
-                "guidance": ("FLOAT", {"default": 2.5, "min": 0.1, "max": 10}),
-                "interval": ("INT", {"default": 2}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "guidance": ("FLOAT", {"default": 2.5, "min": 1.5, "max": 5}),
+                "interval": ("INT", {"default": 2, "min": 1, "max": 4}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
                 "seed": ("INT", {"default": 42})
             }
         }
 
-    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, interval, seed=42):
+    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, interval, output_format="jpeg", seed=42):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -227,19 +237,50 @@ class FluxPro(BaseFlux):
             "safety_tolerance": safety_tolerance,
             "guidance": guidance,
             "interval": interval,
+            "output_format": output_format,
             "seed": seed
         }
         return super().generate_image("flux-pro", arguments)
 
 
+class FluxPro11Ultra(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "aspect_ratio": (["16:9", "4:3", "1:1"], {"default": "16:9"}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"}),
+                "raw": ("BOOLEAN", {"default": False})
+            },
+            "optional": {
+                "seed": ("INT", {"default": 42})
+            }
+        }
+
+    def generate_image(self, prompt, aspect_ratio, safety_tolerance, output_format="jpeg", raw=False, seed=42):
+        arguments = {
+            "prompt": prompt,
+            "seed": seed,
+            "aspect_ratio": aspect_ratio,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format,
+            "raw": raw
+        }
+        return super().generate_image("flux-pro-1.1-ultra", arguments)
+
+
 NODE_CLASS_MAPPINGS = {
     "FluxPro11_BFL": FluxPro11,
     "FluxDev_BFL": FluxDev,
-    "FluxPro_BFL": FluxPro
+    "FluxPro_BFL": FluxPro,
+    "FluxPro11Ultra_BFL": FluxPro11Ultra
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxPro11_BFL": "Flux Pro 1.1 (BFL)",
     "FluxDev_BFL": "Flux Dev (BFL)",
-    "FluxPro_BFL": "Flux Pro (BFL)"
+    "FluxPro_BFL": "Flux Pro (BFL)",
+    "FluxPro11Ultra_BFL": "Flux Pro 1.1 Ultra (BFL)"
 }
