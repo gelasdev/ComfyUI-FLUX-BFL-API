@@ -251,7 +251,7 @@ class FluxPro11Ultra(BaseFlux):
         return {
             "required": {
                 "prompt": ("STRING", {"default": "", "multiline": True}),
-                "aspect_ratio": (["16:9", "4:3", "1:1"], {"default": "16:9"}),
+                "aspect_ratio": ("STRING", {"default": "16:9", "multiline": False}),
                 "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
                 "output_format": (["jpeg", "png"], {"default": "jpeg"}),
                 "raw": ("BOOLEAN", {"default": False})
