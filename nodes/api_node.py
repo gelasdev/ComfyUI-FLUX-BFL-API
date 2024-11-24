@@ -273,17 +273,131 @@ class FluxPro11Ultra(BaseFlux):
             arguments["seed"] = seed
         return super().generate_image("flux-pro-1.1-ultra", arguments)
 
+class FluxProFill(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("STRING", {"default": None}),
+                "mask": ("STRING", {"default": None}),
+                "prompt": ("STRING", {"default": None, "multiline": True}),
+                "steps": ("INT", {"default": 28, "min": 15, "max": 50}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "guidance": ("FLOAT", {"default": 60.0, "min": 1.5, "max": 100.0}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
+
+    def generate_image(self, image, mask=None, prompt=None, steps=50, prompt_upsampling=False, guidance=60.0,
+                      safety_tolerance=2, output_format="jpeg", seed=-1):
+        arguments = {
+            "image": image,
+            "steps": steps,
+            "prompt_upsampling": prompt_upsampling,
+            "guidance": guidance,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+
+        if seed != -1:
+            arguments["seed"] = seed
+
+        if mask is not None:
+            if mask:
+                arguments["mask"] = mask
+            else:
+                print("Warning: Mask image could not be encoded. Proceeding without mask.")
+
+        if prompt is not None:
+            arguments["prompt"] = prompt
+
+        return super().generate_image("flux-pro-1.0-fill", arguments)
+
+class FluxProCanny(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "control_image": ("STRING", {"default": None}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "steps": ("INT", {"default": 28, "min": 15, "max": 50}),
+                "guidance": ("FLOAT", {"default": 60.0, "min": 1.5, "max": 100.0}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
+
+    def generate_image(self, prompt, control_image, prompt_upsampling, steps, guidance, safety_tolerance, output_format, seed):
+        arguments = {
+            "prompt": prompt,
+            "control_image": control_image,
+            "prompt_upsampling": prompt_upsampling,
+            "steps": steps,
+            "guidance": guidance,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        return super().generate_image("flux-pro-1.0-canny", arguments)
+
+
+class FluxProDepth(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "control_image": ("STRING", {"default": None}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "steps": ("INT", {"default": 28, "min": 15, "max": 50}),
+                "guidance": ("FLOAT", {"default": 60.0, "min": 1.5, "max": 100.0}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
+
+    def generate_image(self, prompt, control_image, prompt_upsampling, steps, guidance, safety_tolerance, output_format, seed):
+        arguments = {
+            "prompt": prompt,
+            "control_image": control_image,
+            "prompt_upsampling": prompt_upsampling,
+            "steps": steps,
+            "guidance": guidance,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        return super().generate_image("flux-pro-1.0-depth", arguments)
 
 NODE_CLASS_MAPPINGS = {
     "FluxPro11_BFL": FluxPro11,
     "FluxDev_BFL": FluxDev,
     "FluxPro_BFL": FluxPro,
-    "FluxPro11Ultra_BFL": FluxPro11Ultra
+    "FluxPro11Ultra_BFL": FluxPro11Ultra,
+    "FluxProFill_BFL": FluxProFill,
+    "FluxProCanny_BFL": FluxProCanny,
+    "FluxProDepth_BFL": FluxProDepth
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxPro11_BFL": "Flux Pro 1.1 (BFL)",
     "FluxDev_BFL": "Flux Dev (BFL)",
     "FluxPro_BFL": "Flux Pro (BFL)",
-    "FluxPro11Ultra_BFL": "Flux Pro 1.1 Ultra (BFL)"
+    "FluxPro11Ultra_BFL": "Flux Pro 1.1 Ultra (BFL)",
+    "FluxProFill_BFL": "Flux Pro Fill (BFL)",
+    "FluxProCanny_BFL": "Flux Pro Canny (BFL)",
+    "FluxProDepth_BFL": "Flux Pro Depth (BFL)"
 }
