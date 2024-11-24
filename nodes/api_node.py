@@ -97,7 +97,7 @@ class BaseFlux:
             print(f"Error initiating request: {response.status_code}, {response.text}")
             return None
 
-    def get_result(self, task_id, output_format="jpeg", attempt=1, max_attempts=10):
+    def get_result(self, task_id, output_format="jpeg", attempt=1, max_attempts=20):
         if attempt > max_attempts:
             print(f"Max attempts reached for task_id {task_id}. Image not ready.")
             return self.create_blank_image()
