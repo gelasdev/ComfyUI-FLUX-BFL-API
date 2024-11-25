@@ -67,7 +67,6 @@ class BaseFlux:
 
                 img_array = np.array(img_converted).astype(np.float32) / 255.0
                 img_tensor = torch.from_numpy(img_array)[None,]
-                img_converted.show()
                 return (img_tensor,)
         except KeyError as e:
             print(f"KeyError: Missing expected key {e}")
