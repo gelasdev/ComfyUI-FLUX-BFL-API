@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-flux-bfl-api"
 description = "Custom nodes for integrating Flux models with the BFL API."
-version = "1.0.5"
+version = "1.0.6"
 license = {file = "LICENSE"}
 dependencies = ["torch"]
 
