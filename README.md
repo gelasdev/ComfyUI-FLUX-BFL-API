@@ -42,6 +42,6 @@ An example workflow has been added to the `workflow` folder.
 ## Example
 
 ![image](https://github.com/user-attachments/assets/966427cb-af20-4e59-a59f-6fc507fabdd2)
-![image](https://github.com/user-attachments/assets/6e66e4e7-2b04-48f4-8af3-f3859063d366)
+![image](https://github.com/user-attachments/assets/c4d6de33-ee7c-428e-8850-464025a4ebcf)
 
 
