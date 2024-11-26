@@ -381,11 +381,44 @@ class FluxProDepth(BaseFlux):
             arguments["seed"] = seed
         return super().generate_image("flux-pro-1.0-depth", arguments)
 
+class FluxPro11Redux(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "image_prompt": ("STRING", {"default": None}),
+                "width": ("INT", {"default": 1440, "min": 256, "max": 1440}),
+                "height": ("INT", {"default": 1440, "min": 256, "max": 1440}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
+
+    def generate_image(self, prompt, image_prompt, width, height, prompt_upsampling, safety_tolerance, output_format, seed):
+        arguments = {
+            "prompt": prompt,
+            "image_prompt": image_prompt,
+            "width": width,
+            "height": height,
+            "prompt_upsampling": prompt_upsampling,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        return super().generate_image("flux-pro-1.1", arguments)
+
 NODE_CLASS_MAPPINGS = {
     "FluxPro11_BFL": FluxPro11,
     "FluxDev_BFL": FluxDev,
     "FluxPro_BFL": FluxPro,
     "FluxPro11Ultra_BFL": FluxPro11Ultra,
+    "FluxPro11Redux_BFL": FluxPro11Redux,
     "FluxProFill_BFL": FluxProFill,
     "FluxProCanny_BFL": FluxProCanny,
     "FluxProDepth_BFL": FluxProDepth
@@ -396,6 +429,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxDev_BFL": "Flux Dev (BFL)",
     "FluxPro_BFL": "Flux Pro (BFL)",
     "FluxPro11Ultra_BFL": "Flux Pro 1.1 Ultra (BFL)",
+    "FluxPro11Redux_BFL": "Flux Pro 1.1 Redux (BFL)",
     "FluxProFill_BFL": "Flux Pro Fill (BFL)",
     "FluxProCanny_BFL": "Flux Pro Canny (BFL)",
     "FluxProDepth_BFL": "Flux Pro Depth (BFL)"
