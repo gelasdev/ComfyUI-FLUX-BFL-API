@@ -205,7 +205,42 @@ class FluxDev(BaseFlux):
         if seed != -1:
             arguments["seed"] = seed
         return super().generate_image("flux-dev", arguments)
+        
+class FluxDevRedux(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "image_prompt": ("STRING", {"default": "", "multiline": True}),
+                "width": ("INT", {"default": 1024, "min": 256, "max": 1440}),
+                "height": ("INT", {"default": 768, "min": 256, "max": 1440}),
+                "steps": ("INT", {"default": 28, "min": 1, "max": 50}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "guidance": ("FLOAT", {"default": 3, "min": 1.5, "max": 5}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
 
+    def generate_image(self, prompt, image_prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format, seed):
+        arguments = {
+            "prompt": prompt,
+            "image_prompt": image_prompt,
+            "width": width,
+            "height": height,
+            "steps": steps,
+            "prompt_upsampling": prompt_upsampling,
+            "safety_tolerance": safety_tolerance,
+            "guidance": guidance,
+            "output_format": output_format,
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        return super().generate_image("flux-dev", arguments)
 
 class FluxPro(BaseFlux):
     @classmethod
@@ -412,24 +447,60 @@ class FluxPro11Redux(BaseFlux):
         if seed != -1:
             arguments["seed"] = seed
         return super().generate_image("flux-pro-1.1", arguments)
+        
+class FluxPro11UltraRedux(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "image_prompt": ("STRING", {"default": "", "multiline": True}),
+                "image_prompt_strength": ("FLOAT", {"default": 0.1, "min": 0.0, "max": 1.0}),
+                "aspect_ratio": (["16:9", "4:3", "1:1", "3:2", "21:9", "9:16", "3:4", "2:3", "9:21"], {"default": "16:9"}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"}),
+                "raw": ("BOOLEAN", {"default": False})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
+
+    def generate_image(self, prompt, image_prompt, image_prompt_strength, aspect_ratio, safety_tolerance, output_format, raw, seed):
+        arguments = {
+            "prompt": prompt,
+            "image_prompt": image_prompt,
+            "image_prompt_strength": image_prompt_strength,
+            "aspect_ratio": aspect_ratio,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format,
+            "raw": raw
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        return super().generate_image("flux-pro-1.1-ultra", arguments)
 
 NODE_CLASS_MAPPINGS = {
+    "FluxPro_BFL": FluxPro,
     "FluxPro11_BFL": FluxPro11,
     "FluxDev_BFL": FluxDev,
-    "FluxPro_BFL": FluxPro,
     "FluxPro11Ultra_BFL": FluxPro11Ultra,
+    "FluxDevRedux_BFL": FluxDevRedux,
     "FluxPro11Redux_BFL": FluxPro11Redux,
+    "FluxPro11UltraRedux_BFL": FluxPro11UltraRedux,
     "FluxProFill_BFL": FluxProFill,
     "FluxProCanny_BFL": FluxProCanny,
     "FluxProDepth_BFL": FluxProDepth
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "FluxPro_BFL": "Flux Pro (BFL)",
     "FluxPro11_BFL": "Flux Pro 1.1 (BFL)",
     "FluxDev_BFL": "Flux Dev (BFL)",
-    "FluxPro_BFL": "Flux Pro (BFL)",
     "FluxPro11Ultra_BFL": "Flux Pro 1.1 Ultra (BFL)",
+    "FluxDevRedux_BFL": "Flux Dev Redux (BFL)",
     "FluxPro11Redux_BFL": "Flux Pro 1.1 Redux (BFL)",
+    "FluxPro11UltraRedux_BFL": "Flux Pro 1.1 Ultra Redux (BFL)",
     "FluxProFill_BFL": "Flux Pro Fill (BFL)",
     "FluxProCanny_BFL": "Flux Pro Canny (BFL)",
     "FluxProDepth_BFL": "Flux Pro Depth (BFL)"
