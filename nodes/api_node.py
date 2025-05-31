@@ -480,6 +480,66 @@ class FluxPro11UltraRedux(BaseFlux):
             arguments["seed"] = seed
         return super().generate_image("flux-pro-1.1-ultra", arguments)
 
+class FluxKontextPro(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "input_image": ("STRING", {"default": None}),
+                "aspect_ratio": (["16:9", "4:3", "1:1", "3:2", "21:9", "9:16", "3:4", "2:3", "9:21"], {"default": "16:9"}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
+
+    def generate_image(self, prompt, input_image, aspect_ratio, prompt_upsampling, safety_tolerance, output_format, seed):
+        arguments = {
+            "prompt": prompt,
+            "input_image": input_image,
+            "aspect_ratio": aspect_ratio,
+            "prompt_upsampling": prompt_upsampling,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        return super().generate_image("flux-kontext-pro", arguments)
+
+class FluxKontextMax(BaseFlux):
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "input_image": ("STRING", {"default": None}),
+                "aspect_ratio": (["16:9", "4:3", "1:1", "3:2", "21:9", "9:16", "3:4", "2:3", "9:21"], {"default": "16:9"}),
+                "prompt_upsampling": ("BOOLEAN", {"default": False}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 1, "max": 6}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "seed": ("INT", {"default": -1})
+            }
+        }
+
+    def generate_image(self, prompt, input_image, aspect_ratio, prompt_upsampling, safety_tolerance, output_format, seed):
+        arguments = {
+            "prompt": prompt,
+            "input_image": input_image,
+            "aspect_ratio": aspect_ratio,
+            "prompt_upsampling": prompt_upsampling,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        return super().generate_image("flux-kontext-max", arguments)
+
 NODE_CLASS_MAPPINGS = {
     "FluxPro_BFL": FluxPro,
     "FluxPro11_BFL": FluxPro11,
@@ -490,7 +550,9 @@ NODE_CLASS_MAPPINGS = {
     "FluxPro11UltraRedux_BFL": FluxPro11UltraRedux,
     "FluxProFill_BFL": FluxProFill,
     "FluxProCanny_BFL": FluxProCanny,
-    "FluxProDepth_BFL": FluxProDepth
+    "FluxProDepth_BFL": FluxProDepth,
+    "FluxKontextPro_BFL": FluxKontextPro,
+    "FluxKontextMax_BFL": FluxKontextMax
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -503,5 +565,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxPro11UltraRedux_BFL": "Flux Pro 1.1 Ultra Redux (BFL)",
     "FluxProFill_BFL": "Flux Pro Fill (BFL)",
     "FluxProCanny_BFL": "Flux Pro Canny (BFL)",
-    "FluxProDepth_BFL": "Flux Pro Depth (BFL)"
+    "FluxProDepth_BFL": "Flux Pro Depth (BFL)",
+    "FluxKontextPro_BFL": "Flux Kontext Pro (BFL)",
+    "FluxKontextMax_BFL": "Flux Kontext Max (BFL)"
 }
