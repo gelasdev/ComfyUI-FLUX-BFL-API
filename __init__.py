@@ -3,6 +3,7 @@ import importlib
 
 node_list = [
 "api_node",
+"finetune",
 ]
 
 NODE_CLASS_MAPPINGS = {}
