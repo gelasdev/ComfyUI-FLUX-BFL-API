@@ -39,6 +39,10 @@ After setting up, you can begin using the custom nodes with Flux models through 
 
 An example workflow has been added to the `workflow` folder.
 
+## Contributors
+
+- [@pleberer](https://github.com/pleberer)
+
 ## Example
 
 ![image](https://github.com/user-attachments/assets/4b401e24-8bc3-4098-8996-a479902a4178)
