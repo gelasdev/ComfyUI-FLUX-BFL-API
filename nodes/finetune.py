@@ -41,7 +41,6 @@ class FluxFinetune:
                 learning_rate = 0.0001  # 10x higher for LoRA as per docs
                 print(f"Auto-adjusted learning rate to {learning_rate} for LoRA finetune")
         
-        # Read and encode ZIP file
         if not zip_file_path or not zip_file_path.strip():
             print("❌ Error: ZIP file path is required")
             return ("Error: ZIP file path is required",)
@@ -78,28 +77,12 @@ class FluxFinetune:
             headers = {"x-key": os.environ["X_KEY"]}
             response = requests.post(post_url, json=arguments, headers=headers)
             
-            # Log the full response details
-            print("=" * 80)
-            print("FINETUNE RESPONSE:")
-            print("=" * 80)
-            print(f"Status Code: {response.status_code}")
-            print(f"Response Body:")
-            try:
-                response_json = response.json()
-                print(json.dumps(response_json, indent=2))
-            except:
-                print(f"Raw Response Text: {response.text}")
-            print("=" * 80)
-            
             if response.status_code == 200:
                 result = response.json()
                 finetune_id = result.get("id", "Unknown")
-                regional_endpoint = config_loader.get_regional_endpoint(region)
                 print(f"✅ Finetune created successfully with ID: {finetune_id}")
-                print(f"Region: {region.upper()} ({regional_endpoint})")
                 print(f"⚠️  Remember: Use the same region ({region}) for inference!")
                 
-                # Return the full response as JSON string for user
                 return (json.dumps(result, indent=2),)
             else:
                 print(f"❌ Error creating finetune: {response.status_code}")
@@ -109,20 +92,12 @@ class FluxFinetune:
                 except:
                     return (f"HTTP {response.status_code}: {response.text}",)
         except Exception as e:
-            print("=" * 80)
-            print("FINETUNE EXCEPTION:")
-            print("=" * 80)
-            print(f"Exception Type: {type(e).__name__}")
-            print(f"Exception Message: {str(e)}")
-            import traceback
-            print(f"Full Traceback:")
-            traceback.print_exc()
-            print("=" * 80)
-            return ("Error",)
+            print(f"❌ Error creating finetune: {str(e)}")
+            error_response = {"error": "Exception occurred", "message": str(e)}
+            return (json.dumps(error_response, indent=2),)
 
 class FluxFinetuneStatus:
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("status", "progress", "result")
+    RETURN_TYPES = ("STRING",)
     FUNCTION = "check_finetune_status"
     CATEGORY = "BFL/Finetune"
 
@@ -137,10 +112,10 @@ class FluxFinetuneStatus:
 
     def check_finetune_status(self, finetune_id, region):
         if not finetune_id or not finetune_id.strip():
-            return ("Error", "No finetune ID provided", "")
+            error_response = {"error": "No finetune ID provided"}
+            return (json.dumps(error_response, indent=2),)
             
         try:
-            # Use config_loader to get the correct regional endpoint
             polling_url = config_loader.create_url("get_result", region=region)
             
             headers = {"x-key": os.environ["X_KEY"]}
@@ -166,21 +141,153 @@ class FluxFinetuneStatus:
                     print(f"Result: {result_data}")
                 print("=" * 50)
                 
-                # Convert result to string if it's a dict
-                if isinstance(result_data, dict):
-                    result_str = json.dumps(result_data, indent=2)
-                else:
-                    result_str = str(result_data) if result_data else ""
-                
-                return (status, str(progress), result_str)
+                return (json.dumps(result, indent=2),)
             else:
                 print(f"❌ Error checking finetune status: {response.status_code}")
                 print(f"Response: {response.text}")
-                return ("Error", f"HTTP {response.status_code}", response.text)
+                try:
+                    error_response = response.json()
+                    return (json.dumps(error_response, indent=2),)
+                except:
+                    return (f"HTTP {response.status_code}: {response.text}",)
                 
         except Exception as e:
             print(f"❌ Exception checking finetune status: {str(e)}")
-            return ("Error", "Exception occurred", str(e))
+            error_response = {"error": "Exception occurred", "message": str(e)}
+            return (json.dumps(error_response, indent=2),)
+
+class FluxMyFinetunes:
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "get_my_finetunes"
+    CATEGORY = "BFL/Finetune"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "region": (["us", "eu"], {"default": "us"})
+            }
+        }
+
+    def get_my_finetunes(self, region):
+        try:
+            my_finetunes_url = config_loader.create_url("my_finetunes", region=region)
+            
+            headers = {"x-key": os.environ["X_KEY"]}
+            
+            print(f"📋 Getting my finetunes from region: {region}")
+            print(f"📡 Using endpoint: {my_finetunes_url}")
+            
+            response = requests.get(my_finetunes_url, headers=headers)
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Found {len(result) if isinstance(result, list) else 'N/A'} finetunes")
+                return (json.dumps(result, indent=2),)
+            else:
+                print(f"❌ Error getting finetunes: {response.status_code}")
+                try:
+                    error_response = response.json()
+                    return (json.dumps(error_response, indent=2),)
+                except:
+                    return (f"HTTP {response.status_code}: {response.text}",)
+                
+        except Exception as e:
+            print(f"❌ Exception getting finetunes: {str(e)}")
+            return (f"Error: {str(e)}",)
+
+class FluxFinetuneDetails:
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "get_finetune_details"
+    CATEGORY = "BFL/Finetune"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "finetune_id": ("STRING", {"default": ""}),
+                "region": (["us", "eu"], {"default": "us"})
+            }
+        }
+
+    def get_finetune_details(self, finetune_id, region):
+        if not finetune_id or not finetune_id.strip():
+            return ("Error: Finetune ID is required",)
+            
+        try:
+            details_url = config_loader.create_url("finetune_details", region=region)
+            
+            headers = {"x-key": os.environ["X_KEY"]}
+            params = {"finetune_id": finetune_id.strip()}
+            
+            print(f"📋 Getting finetune details for ID: {finetune_id}")
+            print(f"📡 Using endpoint: {details_url}")
+            
+            response = requests.get(details_url, headers=headers, params=params)
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Got finetune details successfully")
+                return (json.dumps(result, indent=2),)
+            else:
+                print(f"❌ Error getting finetune details: {response.status_code}")
+                try:
+                    error_response = response.json()
+                    return (json.dumps(error_response, indent=2),)
+                except:
+                    return (f"HTTP {response.status_code}: {response.text}",)
+                
+        except Exception as e:
+            print(f"❌ Exception getting finetune details: {str(e)}")
+            return (f"Error: {str(e)}",)
+
+class FluxDeleteFinetune:
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "delete_finetune"
+    CATEGORY = "BFL/Finetune"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "finetune_id": ("STRING", {"default": ""}),
+                "region": (["us", "eu"], {"default": "us"})
+            }
+        }
+
+    def delete_finetune(self, finetune_id, region):
+        if not finetune_id or not finetune_id.strip():
+            return ("Error: Finetune ID is required",)
+            
+        try:
+            delete_url = config_loader.create_url("delete_finetune", region=region)
+            
+            headers = {
+                "x-key": os.environ["X_KEY"],
+                "Content-Type": "application/json"
+            }
+            payload = {"finetune_id": finetune_id.strip()}
+            
+            print(f"🗑️  Deleting finetune ID: {finetune_id}")
+            print(f"📡 Using endpoint: {delete_url}")
+            
+            response = requests.post(delete_url, headers=headers, json=payload)
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ Finetune deleted successfully")
+                return (json.dumps(result, indent=2),)
+            else:
+                print(f"❌ Error deleting finetune: {response.status_code}")
+                try:
+                    error_response = response.json()
+                    return (json.dumps(error_response, indent=2),)
+                except:
+                    return (f"HTTP {response.status_code}: {response.text}",)
+                
+        except Exception as e:
+            print(f"❌ Exception deleting finetune: {str(e)}")
+            return (f"Error: {str(e)}",)
 
 class FluxProFinetune(BaseFinetuneFlux):
     @classmethod
@@ -464,6 +571,9 @@ class FluxPro11UltraFinetune(BaseFinetuneFlux):
 NODE_CLASS_MAPPINGS = {
     "FluxFinetune_BFL": FluxFinetune,
     "FluxFinetuneStatus_BFL": FluxFinetuneStatus,
+    "FluxMyFinetunes_BFL": FluxMyFinetunes,
+    "FluxFinetuneDetails_BFL": FluxFinetuneDetails,
+    "FluxDeleteFinetune_BFL": FluxDeleteFinetune,
     "FluxProFinetune_BFL": FluxProFinetune,
     "FluxProDepthFinetune_BFL": FluxProDepthFinetune,
     "FluxProCannyFinetune_BFL": FluxProCannyFinetune,
@@ -474,6 +584,9 @@ NODE_CLASS_MAPPINGS = {
 NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxFinetune_BFL": "Flux Finetune Creator (BFL)",
     "FluxFinetuneStatus_BFL": "Flux Finetune Status (BFL)",
+    "FluxMyFinetunes_BFL": "Flux My Finetunes (BFL)",
+    "FluxFinetuneDetails_BFL": "Flux Finetune Details (BFL)",
+    "FluxDeleteFinetune_BFL": "Flux Delete Finetune (BFL)",
     "FluxProFinetune_BFL": "Flux Pro Finetune (BFL)",
     "FluxProDepthFinetune_BFL": "Flux Pro Depth Finetune (BFL)",
     "FluxProCannyFinetune_BFL": "Flux Pro Canny Finetune (BFL)",
