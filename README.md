@@ -42,7 +42,7 @@ An example workflow has been added to the `workflow` folder.
 ## Example
 
 ![image](https://github.com/user-attachments/assets/4b401e24-8bc3-4098-8996-a479902a4178)
-![image](https://github.com/user-attachments/assets/984f579e-d38e-41d8-85f1-9dd8ab0b5a0d)
+![image](https://github.com/user-attachments/assets/715c8f88-0299-43a3-a728-4d86a6b33018)
 ![image](https://github.com/user-attachments/assets/966427cb-af20-4e59-a59f-6fc507fabdd2)
 ![image](https://github.com/user-attachments/assets/8e48b76f-2717-4119-b7dc-423b86fc1887)
 ![image](https://github.com/user-attachments/assets/0e91caba-7e1a-454d-b91b-29663d64d6d8)
