@@ -60,7 +60,7 @@ class BaseFlux:
             print(f"Error initiating request: {response.status_code}, {response.text}")
             return None
 
-    def get_result(self, task_id, output_format="jpeg", max_attempts=20, config_override=None):
+    def get_result(self, task_id, output_format="jpeg", max_attempts=40, config_override=None):
         # Use ConfigLoader with optional config override
         config_loader_instance = get_config_loader(config_override)
         
