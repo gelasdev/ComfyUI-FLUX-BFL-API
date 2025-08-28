@@ -14,11 +14,12 @@ class FluxPro11(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, width, height, prompt_upsampling, safety_tolerance, output_format, seed):
+    def generate_image(self, prompt, width, height, prompt_upsampling, safety_tolerance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -29,7 +30,7 @@ class FluxPro11(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-pro-1.1", arguments)
+        return super().generate_image("flux-pro-1.1", arguments, config)
 
 
 class FluxDev(BaseFlux):
@@ -47,11 +48,12 @@ class FluxDev(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format, seed):
+    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -64,7 +66,7 @@ class FluxDev(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-dev", arguments)
+        return super().generate_image("flux-dev", arguments, config)
         
 class FluxDevRedux(BaseFlux):
     @classmethod
@@ -82,11 +84,12 @@ class FluxDevRedux(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, image_prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format, seed):
+    def generate_image(self, prompt, image_prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "image_prompt": image_prompt,
@@ -100,7 +103,7 @@ class FluxDevRedux(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-dev", arguments)
+        return super().generate_image("flux-dev", arguments, config)
 
 class FluxPro(BaseFlux):
     @classmethod
@@ -118,11 +121,12 @@ class FluxPro(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, interval, output_format, seed):
+    def generate_image(self, prompt, width, height, steps, prompt_upsampling, safety_tolerance, guidance, interval, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "width": width,
@@ -136,7 +140,7 @@ class FluxPro(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-pro", arguments)
+        return super().generate_image("flux-pro", arguments, config)
 
 
 class FluxPro11Ultra(BaseFlux):
@@ -151,11 +155,12 @@ class FluxPro11Ultra(BaseFlux):
                 "raw": ("BOOLEAN", {"default": False})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, aspect_ratio, safety_tolerance, output_format, raw, seed):
+    def generate_image(self, prompt, aspect_ratio, safety_tolerance, output_format, raw, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "aspect_ratio": aspect_ratio,
@@ -165,7 +170,7 @@ class FluxPro11Ultra(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-pro-1.1-ultra", arguments)
+        return super().generate_image("flux-pro-1.1-ultra", arguments, config)
 
 class FluxProFill(BaseFlux):
     @classmethod
@@ -182,12 +187,13 @@ class FluxProFill(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
     def generate_image(self, image, mask=None, prompt=None, steps=50, prompt_upsampling=False, guidance=60.0,
-                      safety_tolerance=2, output_format="jpeg", seed=-1):
+                      safety_tolerance=2, output_format="jpeg", seed=-1, config=None):
         arguments = {
             "image": image,
             "steps": steps,
@@ -209,7 +215,7 @@ class FluxProFill(BaseFlux):
         if prompt is not None:
             arguments["prompt"] = prompt
 
-        return super().generate_image("flux-pro-1.0-fill", arguments)
+        return super().generate_image("flux-pro-1.0-fill", arguments, config)
 
 class FluxProCanny(BaseFlux):
     @classmethod
@@ -225,11 +231,12 @@ class FluxProCanny(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, control_image, prompt_upsampling, steps, guidance, safety_tolerance, output_format, seed):
+    def generate_image(self, prompt, control_image, prompt_upsampling, steps, guidance, safety_tolerance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "control_image": control_image,
@@ -241,7 +248,7 @@ class FluxProCanny(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-pro-1.0-canny", arguments)
+        return super().generate_image("flux-pro-1.0-canny", arguments, config)
 
 
 class FluxProDepth(BaseFlux):
@@ -258,11 +265,12 @@ class FluxProDepth(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, control_image, prompt_upsampling, steps, guidance, safety_tolerance, output_format, seed):
+    def generate_image(self, prompt, control_image, prompt_upsampling, steps, guidance, safety_tolerance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "control_image": control_image,
@@ -274,7 +282,7 @@ class FluxProDepth(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-pro-1.0-depth", arguments)
+        return super().generate_image("flux-pro-1.0-depth", arguments, config)
 
 class FluxPro11Redux(BaseFlux):
     @classmethod
@@ -290,11 +298,12 @@ class FluxPro11Redux(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, image_prompt, width, height, prompt_upsampling, safety_tolerance, output_format, seed):
+    def generate_image(self, prompt, image_prompt, width, height, prompt_upsampling, safety_tolerance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "image_prompt": image_prompt,
@@ -306,7 +315,7 @@ class FluxPro11Redux(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-pro-1.1", arguments)
+        return super().generate_image("flux-pro-1.1", arguments, config)
         
 class FluxPro11UltraRedux(BaseFlux):
     @classmethod
@@ -322,11 +331,12 @@ class FluxPro11UltraRedux(BaseFlux):
                 "raw": ("BOOLEAN", {"default": False})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, image_prompt, image_prompt_strength, aspect_ratio, safety_tolerance, output_format, raw, seed):
+    def generate_image(self, prompt, image_prompt, image_prompt_strength, aspect_ratio, safety_tolerance, output_format, raw, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "image_prompt": image_prompt,
@@ -338,7 +348,7 @@ class FluxPro11UltraRedux(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-pro-1.1-ultra", arguments)
+        return super().generate_image("flux-pro-1.1-ultra", arguments, config)
 
 class FluxKontextPro(BaseFlux):
     @classmethod
@@ -353,11 +363,12 @@ class FluxKontextPro(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, input_image, aspect_ratio, prompt_upsampling, safety_tolerance, output_format, seed):
+    def generate_image(self, prompt, input_image, aspect_ratio, prompt_upsampling, safety_tolerance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "input_image": input_image,
@@ -368,7 +379,7 @@ class FluxKontextPro(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-kontext-pro", arguments)
+        return super().generate_image("flux-kontext-pro", arguments, config)
 
 class FluxKontextMax(BaseFlux):
     @classmethod
@@ -383,11 +394,12 @@ class FluxKontextMax(BaseFlux):
                 "output_format": (["jpeg", "png"], {"default": "jpeg"})
             },
             "optional": {
-                "seed": ("INT", {"default": -1})
+                "seed": ("INT", {"default": -1}),
+                "config": ("BFL_CONFIG",)
             }
         }
 
-    def generate_image(self, prompt, input_image, aspect_ratio, prompt_upsampling, safety_tolerance, output_format, seed):
+    def generate_image(self, prompt, input_image, aspect_ratio, prompt_upsampling, safety_tolerance, output_format, seed=-1, config=None):
         arguments = {
             "prompt": prompt,
             "input_image": input_image,
@@ -398,7 +410,7 @@ class FluxKontextMax(BaseFlux):
         }
         if seed != -1:
             arguments["seed"] = seed
-        return super().generate_image("flux-kontext-max", arguments)
+        return super().generate_image("flux-kontext-max", arguments, config)
 
 NODE_CLASS_MAPPINGS = {
     "FluxPro_BFL": FluxPro,
