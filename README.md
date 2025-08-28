@@ -42,6 +42,7 @@ An example workflow has been added to the `workflow` folder.
 ## Contributors
 
 - [@pleberer](https://github.com/pleberer)
+- [@Duanyll](https://github.com/Duanyll)
 
 ## Example
 
