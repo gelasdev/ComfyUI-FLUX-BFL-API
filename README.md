@@ -23,21 +23,61 @@ Custom nodes for integrating Flux models with the BFL API.
     pip install -r requirements.txt
     ```
 
-3. Get your BFL API key from [api.bfl.ml](https://api.bfl.ml).
+3. Get your BFL API key from [api.bfl.ai](https://api.bfl.ai).
 
 4. Add your API key to the `config.ini` file:
     ```ini
     [API]
-    key = YOUR_API_KEY
+    X_KEY = YOUR_API_KEY
+    BASE_URL = https://api.bfl.ai/v1/
     ```
 
-## Usage
+## Configuration
 
-After setting up, you can begin using the custom nodes with Flux models through the BFL API.
+You can either use `config.ini` for a global API key, or connect a **Flux Config (BFL)** node directly to any generation node to override the key, base URL, and region per-node. If no config node is connected, `config.ini` is used automatically.
+
+## Nodes
+
+### Generation
+| Node | Description |
+|---|---|
+| Flux Pro 1.1 (BFL) | Text-to-image with Flux Pro 1.1 |
+| Flux Pro 1.1 Ultra (BFL) | High-resolution text-to-image |
+| Flux Dev (BFL) | Text-to-image with Flux Dev |
+| Flux Pro Fill (BFL) | Inpainting / outpainting |
+| Flux Pro Expand (BFL) | Outpainting with directional padding |
+| Flux Kontext Pro (BFL) | Image editing with context (up to 4 images) |
+| Flux Kontext Max (BFL) | Image editing with context, max quality |
+| Flux 2 Max (BFL) | Flux 2 Max generation |
+| Flux 2 Pro (BFL) | Flux 2 Pro generation |
+| Flux 2 Flex (BFL) | Flux 2 Flex generation |
+| Flux 2 Klein 9B (BFL) | Flux 2 Klein 9B generation |
+| Flux 2 Klein 4B (BFL) | Flux 2 Klein 4B generation |
+
+### Finetune
+| Node | Description |
+|---|---|
+| Flux Pro Fill Finetune (BFL) | Inpainting with a finetuned model |
+| Flux Pro 1.1 Ultra Finetune (BFL) | Ultra generation with a finetuned model |
+| Flux Finetune Status (BFL) | Check the status of a finetune job |
+| Flux My Finetunes (BFL) | List all your finetunes |
+| Flux Finetune Details (BFL) | Get details of a specific finetune |
+| Flux Delete Finetune (BFL) | Delete a finetune |
+
+### Config
+| Node | Description |
+|---|---|
+| Flux Config (BFL) | Override API key, base URL and region per-node |
+| Flux Credits (BFL) | Check your remaining BFL API credits |
+
+### Utils
+| Node | Description |
+|---|---|
+| Image to Base64 (BFL) | Convert a ComfyUI IMAGE to a base64 data URI for use as image input |
 
 ## Workflow
 
-An example workflow has been added to the `workflow` folder.
+Example workflows are available in the `workflows` folder.
 
 ## Contributors
 
@@ -46,10 +86,5 @@ An example workflow has been added to the `workflow` folder.
 
 ## Example
 
-![image](https://github.com/user-attachments/assets/4b401e24-8bc3-4098-8996-a479902a4178)
-![image](https://github.com/user-attachments/assets/715c8f88-0299-43a3-a728-4d86a6b33018)
-![image](https://github.com/user-attachments/assets/966427cb-af20-4e59-a59f-6fc507fabdd2)
-![image](https://github.com/user-attachments/assets/8e48b76f-2717-4119-b7dc-423b86fc1887)
-![image](https://github.com/user-attachments/assets/0e91caba-7e1a-454d-b91b-29663d64d6d8)
-
-
+![image](https://github.com/user-attachments/assets/e74c4157-b113-4590-a19a-758ac044725f)
+![image](https://github.com/user-attachments/assets/98011024-c929-4128-af76-af7925e3c445)
