@@ -17,7 +17,7 @@ class FluxConfig_BFL:
                     "placeholder": "Enter your BFL API key"
                 }),
                 "base_url": ("STRING", {
-                    "default": "https://api.bfl.ml/v1/",
+                    "default": "https://api.bfl.ai/v1/",
                     "multiline": False,
                     "placeholder": "Base API URL"
                 }),
@@ -40,13 +40,13 @@ class FluxConfig_BFL:
         
         # Regional endpoints for finetuning (required by BFL API)
         regional_endpoints = {
-            "us": "https://api.us1.bfl.ai",
-            "eu": "https://api.eu1.bfl.ai"
+            "us": "https://api.us.bfl.ai",
+            "eu": "https://api.eu.bfl.ai"
         }
         
         config = {
             "x_key": x_key.strip() if x_key.strip() else None,
-            "base_url": base_url.strip() if base_url.strip() else "https://api.bfl.ml/v1/",
+            "base_url": base_url.strip() if base_url.strip() else "https://api.bfl.ai/v1/",
             "regional_endpoints": regional_endpoints,
             "default_region": region if region != "none" else None
         }

@@ -22,8 +22,8 @@ class ConfigLoader:
         
         # Regional endpoints for finetuning (required by BFL API)
         self.regional_endpoints = {
-            "us": "https://api.us1.bfl.ai",
-            "eu": "https://api.eu1.bfl.ai"
+            "us": "https://api.us.bfl.ai",
+            "eu": "https://api.eu.bfl.ai"
         }
 
     def get_key(self, section, key):
