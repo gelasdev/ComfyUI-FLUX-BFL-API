@@ -469,6 +469,73 @@ class Flux2Pro(BaseFlux):
             return self.create_blank_image()
 
 
+class Flux2ProPreview(BaseFlux):
+    CATEGORY = "BFL/Flux2"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 5}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "input_image": ("STRING", {"default": ""}),
+                "input_image_2": ("STRING", {"default": ""}),
+                "input_image_3": ("STRING", {"default": ""}),
+                "input_image_4": ("STRING", {"default": ""}),
+                "input_image_5": ("STRING", {"default": ""}),
+                "input_image_6": ("STRING", {"default": ""}),
+                "input_image_7": ("STRING", {"default": ""}),
+                "input_image_8": ("STRING", {"default": ""}),
+                "width": ("INT", {"default": 0, "min": 64}),
+                "height": ("INT", {"default": 0, "min": 64}),
+                "seed": ("INT", {"default": -1}),
+                "webhook_url": ("STRING", {"default": ""}),
+                "webhook_secret": ("STRING", {"default": ""}),
+                "config": ("BFL_CONFIG",)
+            }
+        }
+
+    def generate_image(self, prompt, safety_tolerance, output_format,
+                       input_image="", input_image_2="", input_image_3="", input_image_4="",
+                       input_image_5="", input_image_6="", input_image_7="", input_image_8="",
+                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", config=None):
+        arguments = {
+            "prompt": prompt,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+        for key, val in [
+            ("input_image", input_image), ("input_image_2", input_image_2),
+            ("input_image_3", input_image_3), ("input_image_4", input_image_4),
+            ("input_image_5", input_image_5), ("input_image_6", input_image_6),
+            ("input_image_7", input_image_7), ("input_image_8", input_image_8)
+        ]:
+            if val:
+                arguments[key] = val
+        if width > 0:
+            arguments["width"] = width
+        if height > 0:
+            arguments["height"] = height
+        if seed != -1:
+            arguments["seed"] = seed
+        if webhook_url:
+            arguments["webhook_url"] = webhook_url
+        if webhook_secret:
+            arguments["webhook_secret"] = webhook_secret
+        try:
+            task_id = self.post_request("flux-2-pro-preview", arguments, config)
+            if task_id:
+                print(f"Task ID '{task_id}'")
+                return self.get_result(task_id, output_format=output_format, config_override=config)
+            return self.create_blank_image()
+        except Exception as e:
+            print(f"Error generating image: {str(e)}")
+            return self.create_blank_image()
+
+
 class Flux2Flex(BaseFlux):
     CATEGORY = "BFL/Flux2"
 
@@ -600,6 +667,66 @@ class Flux2Klein9b(BaseFlux):
             return self.create_blank_image()
 
 
+class Flux2Klein9bPreview(BaseFlux):
+    CATEGORY = "BFL/Flux2"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 5}),
+                "output_format": (["jpeg", "png"], {"default": "jpeg"})
+            },
+            "optional": {
+                "input_image": ("STRING", {"default": ""}),
+                "input_image_2": ("STRING", {"default": ""}),
+                "input_image_3": ("STRING", {"default": ""}),
+                "input_image_4": ("STRING", {"default": ""}),
+                "width": ("INT", {"default": 0, "min": 64}),
+                "height": ("INT", {"default": 0, "min": 64}),
+                "seed": ("INT", {"default": -1}),
+                "webhook_url": ("STRING", {"default": ""}),
+                "webhook_secret": ("STRING", {"default": ""}),
+                "config": ("BFL_CONFIG",)
+            }
+        }
+
+    def generate_image(self, prompt, safety_tolerance, output_format,
+                       input_image="", input_image_2="", input_image_3="", input_image_4="",
+                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", config=None):
+        arguments = {
+            "prompt": prompt,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format
+        }
+        for key, val in [
+            ("input_image", input_image), ("input_image_2", input_image_2),
+            ("input_image_3", input_image_3), ("input_image_4", input_image_4)
+        ]:
+            if val:
+                arguments[key] = val
+        if width > 0:
+            arguments["width"] = width
+        if height > 0:
+            arguments["height"] = height
+        if seed != -1:
+            arguments["seed"] = seed
+        if webhook_url:
+            arguments["webhook_url"] = webhook_url
+        if webhook_secret:
+            arguments["webhook_secret"] = webhook_secret
+        try:
+            task_id = self.post_request("flux-2-klein-9b-preview", arguments, config)
+            if task_id:
+                print(f"Task ID '{task_id}'")
+                return self.get_result(task_id, output_format=output_format, config_override=config)
+            return self.create_blank_image()
+        except Exception as e:
+            print(f"Error generating image: {str(e)}")
+            return self.create_blank_image()
+
+
 class Flux2Klein4b(BaseFlux):
     CATEGORY = "BFL/Flux2"
 
@@ -692,8 +819,10 @@ NODE_CLASS_MAPPINGS = {
     "FluxProExpand_BFL": FluxProExpand,
     "Flux2Max_BFL": Flux2Max,
     "Flux2Pro_BFL": Flux2Pro,
+    "Flux2ProPreview_BFL": Flux2ProPreview,
     "Flux2Flex_BFL": Flux2Flex,
     "Flux2Klein9b_BFL": Flux2Klein9b,
+    "Flux2Klein9bPreview_BFL": Flux2Klein9bPreview,
     "Flux2Klein4b_BFL": Flux2Klein4b,
     "FluxCredits_BFL": FluxCredits
 }
@@ -708,8 +837,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxProExpand_BFL": "Flux Pro Expand (BFL)",
     "Flux2Max_BFL": "Flux 2 Max (BFL)",
     "Flux2Pro_BFL": "Flux 2 Pro (BFL)",
+    "Flux2ProPreview_BFL": "Flux 2 Pro Preview (BFL)",
     "Flux2Flex_BFL": "Flux 2 Flex (BFL)",
     "Flux2Klein9b_BFL": "Flux 2 Klein 9B (BFL)",
+    "Flux2Klein9bPreview_BFL": "Flux 2 Klein 9B Preview (BFL)",
     "Flux2Klein4b_BFL": "Flux 2 Klein 4B (BFL)",
     "FluxCredits_BFL": "Flux Credits (BFL)"
 }

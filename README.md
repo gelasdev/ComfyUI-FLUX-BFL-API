@@ -50,8 +50,10 @@ You can either use `config.ini` for a global API key, or connect a **Flux Config
 | Flux Kontext Max (BFL) | Image editing with context, max quality |
 | Flux 2 Max (BFL) | Flux 2 Max generation |
 | Flux 2 Pro (BFL) | Flux 2 Pro generation |
+| Flux 2 Pro Preview (BFL) | Flux 2 Pro preview (latest advances) |
 | Flux 2 Flex (BFL) | Flux 2 Flex generation |
 | Flux 2 Klein 9B (BFL) | Flux 2 Klein 9B generation |
+| Flux 2 Klein 9B Preview (BFL) | Flux 2 Klein 9B preview (latest advances) |
 | Flux 2 Klein 4B (BFL) | Flux 2 Klein 4B generation |
 
 ### Finetune
