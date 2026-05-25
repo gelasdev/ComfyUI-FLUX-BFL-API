@@ -1,11 +1,12 @@
-import importlib.util
 import importlib
+import importlib.util
 
 node_list = [
-"api_node",
-"finetune",
-"config_node",
-"utils",
+    "api_node",
+    "finetune",
+    "flux_tools",
+    "config_node",
+    "utils",
 ]
 
 NODE_CLASS_MAPPINGS = {}

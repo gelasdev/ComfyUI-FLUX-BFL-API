@@ -1,15 +1,16 @@
-import requests
-from PIL import Image
 import io
-import numpy as np
-import torch
-import os
 import time
-from .status import Status
-from .config import config_loader
+
+import numpy as np
+import requests
+import torch
+from PIL import Image
+
 from .config_node import get_config_loader
+from .status import Status
 
 REQUEST_TIMEOUT = 300  # seconds for connect + read
+
 
 class BaseFlux:
     RETURN_TYPES = ("IMAGE",)
@@ -18,7 +19,7 @@ class BaseFlux:
 
     def process_result(self, result, output_format="jpeg"):
         try:
-            sample_url = result['result']['sample']
+            sample_url = result["result"]["sample"]
             img_response = requests.get(sample_url)
             img = Image.open(io.BytesIO(img_response.content))
 
@@ -38,7 +39,7 @@ class BaseFlux:
             return self.create_blank_image()
 
     def create_blank_image(self):
-        blank_img = Image.new('RGB', (512, 512), color='black')
+        blank_img = Image.new("RGB", (512, 512), color="black")
         img_array = np.array(blank_img).astype(np.float32) / 255.0
         img_tensor = torch.from_numpy(img_array)[None,]
         return (img_tensor,)
@@ -90,7 +91,10 @@ class BaseFlux:
                 print(f"[BFL] Poll response: {result_response.status_code}")
 
                 if result_response.status_code != 200:
-                    print(f"[BFL] HTTP error on attempt {attempt}/{max_attempts}: {result_response.status_code}, {result_response.text}")
+                    print(
+                        f"[BFL] HTTP error on attempt {attempt}/{max_attempts}: "
+                        f"{result_response.status_code}, {result_response.text}"
+                    )
                     attempt += 1
                     if attempt <= max_attempts:
                         time.sleep(5)
@@ -129,22 +133,28 @@ class BaseFlux:
                     time.sleep(5)
 
         elapsed = time.time() - start_time
-        print(f"[BFL] All {max_attempts} attempts exhausted for task {task_id} after {elapsed:.1f}s — returning blank image.")
+        print(
+            f"[BFL] All {max_attempts} attempts exhausted for task {task_id} "
+            f"after {elapsed:.1f}s — returning blank image."
+        )
         return self.create_blank_image()
 
     def generate_image(self, url_path, arguments, config_override=None):
-        if "width" in arguments and "height" in arguments:
-            self.check_multiple_of_32(arguments["width"], arguments["height"])
-
         try:
+            if "width" in arguments and "height" in arguments:
+                self.check_multiple_of_32(arguments["width"], arguments["height"])
+
             task_id = self.post_request(url_path, arguments, config_override)
             if task_id:
                 print(f"Task ID '{task_id}'")
-                return self.get_result(task_id, output_format=arguments.get("output_format", "jpeg"), config_override=config_override)
+                return self.get_result(
+                    task_id, output_format=arguments.get("output_format", "jpeg"), config_override=config_override
+                )
             return self.create_blank_image()
         except Exception as e:
             print(f"Error generating image: {str(e)}")
             return self.create_blank_image()
 
+
 class BaseFinetuneFlux(BaseFlux):
-    CATEGORY = "BFL/Finetune" 
+    CATEGORY = "BFL/Finetune"
