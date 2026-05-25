@@ -5,6 +5,9 @@ version = "1.0.13"
 license = {file = "LICENSE"}
 dependencies = ["torch"]
 
+[project.optional-dependencies]
+dev = ["ruff>=0.5.0"]
+
 [project.urls]
 Repository = "https://github.com/gelasdev/ComfyUI-FLUX-BFL-API"
 #  Used by Comfy Registry https://comfyregistry.org
@@ -13,3 +16,13 @@ Repository = "https://github.com/gelasdev/ComfyUI-FLUX-BFL-API"
 PublisherId = "gelas"
 DisplayName = "ComfyUI-FLUX-BFL-API"
 Icon = ""
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
