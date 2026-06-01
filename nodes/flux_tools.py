@@ -229,12 +229,105 @@ class FluxOutpaint(BaseFlux):
         return super().generate_image("flux-tools/outpainting-v1", arguments, config)
 
 
+class FluxVirtualTryOn(BaseFlux):
+    CATEGORY = "BFL"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "person": (
+                    "STRING",
+                    {"default": "", "tooltip": "Person image (base64-encoded string). The subject to dress."},
+                ),
+                "garment": (
+                    "STRING",
+                    {"default": "", "tooltip": "Garment image (base64-encoded string). The clothing to apply."},
+                ),
+                "prompt": (
+                    "STRING",
+                    {
+                        "default": "TRY-ON: The person of image 1 wearing garments of image 2.",
+                        "multiline": True,
+                        "tooltip": (
+                            "Text guidance for the try-on. Describe the garment and how it is worn while "
+                            "preserving the person's face and pose."
+                        ),
+                    },
+                ),
+                "safety_tolerance": (
+                    "INT",
+                    {
+                        "default": 2,
+                        "min": 0,
+                        "max": 5,
+                        "tooltip": (
+                            "Tolerance level for input and output moderation. "
+                            "Between 0 and 5, 0 being most strict, 5 being least strict."
+                        ),
+                    },
+                ),
+                "output_format": (
+                    ["jpeg", "png"],
+                    {"default": "jpeg", "tooltip": "jpeg (default) or png."},
+                ),
+            },
+            "optional": {
+                "seed": (
+                    "INT",
+                    {"default": -1, "tooltip": "Optional seed for reproducibility. -1 = random."},
+                ),
+                "webhook_url": (
+                    "STRING",
+                    {"default": "", "tooltip": "URL to receive webhook notifications."},
+                ),
+                "webhook_secret": (
+                    "STRING",
+                    {"default": "", "tooltip": "Optional secret for webhook signature verification."},
+                ),
+                "config": (
+                    "BFL_CONFIG",
+                    {"tooltip": "Optional Flux Config (BFL) override for x-key, base URL, and region."},
+                ),
+            },
+        }
+
+    def generate_image(
+        self,
+        person,
+        garment,
+        prompt,
+        safety_tolerance,
+        output_format,
+        seed=-1,
+        webhook_url="",
+        webhook_secret="",
+        config=None,
+    ):
+        arguments = {
+            "prompt": prompt,
+            "person": person,
+            "garment": garment,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format,
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        if webhook_url:
+            arguments["webhook_url"] = webhook_url
+        if webhook_secret:
+            arguments["webhook_secret"] = webhook_secret
+        return super().generate_image("flux-tools/vto-v1", arguments, config)
+
+
 NODE_CLASS_MAPPINGS = {
     "FluxErase_BFL": FluxErase,
     "FluxOutpaint_BFL": FluxOutpaint,
+    "FluxVirtualTryOn_BFL": FluxVirtualTryOn,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxErase_BFL": "Flux Erase (BFL)",
     "FluxOutpaint_BFL": "Flux Outpaint (BFL)",
+    "FluxVirtualTryOn_BFL": "Flux Virtual Try-On (BFL)",
 }

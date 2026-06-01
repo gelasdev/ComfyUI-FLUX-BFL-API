@@ -48,6 +48,7 @@ You can either use `config.ini` for a global API key, or connect a **Flux Config
 | Flux Pro Expand (BFL) | Outpainting with directional padding |
 | Flux Erase (BFL) | Object removal via binary mask (`flux-tools/erase-v1`) |
 | Flux Outpaint (BFL) | Image extension via target canvas + reference offsets (`flux-tools/outpainting-v1`) |
+| Flux Virtual Try-On (BFL) | Virtual try-on — dress a person image in a garment image (`flux-tools/vto-v1`) |
 | Flux Kontext Pro (BFL) | Image editing with context (up to 4 images) |
 | Flux Kontext Max (BFL) | Image editing with context, max quality |
 | Flux 2 Max (BFL) | Flux 2 Max generation |
