@@ -193,6 +193,18 @@ class FluxOutpaint(BaseFlux):
                         ),
                     },
                 ),
+                "mode": (
+                    ["high", "fast"],
+                    {
+                        "default": "high",
+                        "tooltip": (
+                            "Quality/speed tradeoff. 'high' (default) gives highest fidelity and best prompt "
+                            "adherence. 'fast' is significantly faster for naturally extending scenes "
+                            "(landscapes, backgrounds, textures, products) and requires base64 images, "
+                            "placed reference >=64px per side, aspect ratio <=8:1, canvas+padding <=4MP."
+                        ),
+                    },
+                ),
                 "config": (
                     "BFL_CONFIG",
                     {"tooltip": "Optional Flux Config (BFL) override for x-key, base URL, and region."},
@@ -211,6 +223,7 @@ class FluxOutpaint(BaseFlux):
         reference_offset_x=0,
         reference_offset_y=0,
         auto_crop=False,
+        mode="high",
         config=None,
     ):
         arguments = {
@@ -226,6 +239,8 @@ class FluxOutpaint(BaseFlux):
             arguments["prompt"] = prompt
         if auto_crop:
             arguments["auto_crop"] = auto_crop
+        if mode != "high":
+            arguments["mode"] = mode
         return super().generate_image("flux-tools/outpainting-v1", arguments, config)
 
 
