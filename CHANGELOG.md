@@ -2,6 +2,22 @@
 
 All notable changes to this project from v1.1.0 onward are documented in this file. Earlier history lives in `git log`.
 
+## [1.3.0] — 2026-06-25
+
+### Added
+
+| Node / Feature | Endpoint | Notes |
+|---|---|---|
+| `mode` on Flux Outpaint (BFL) | `POST /v1/flux-tools/outpainting-v1` | Quality/speed tradeoff added by BFL on 2026-06-09. Exposed as a combo defaulting to `high` (the API default); only sent when set to `fast`, so the default request body is unchanged. |
+
+## [1.2.0] — 2026-06-01
+
+### Added
+
+| Node / Feature | Endpoint | Notes |
+|---|---|---|
+| Flux Virtual Try-On (BFL) | `POST /v1/flux-tools/vto-v1` | Dress a person image with a garment image. Base64 string inputs for `person` and `garment`, a required `prompt`, and optional `safety_tolerance` (0–5), `output_format` (jpeg / png), `seed`, `webhook_url`, `webhook_secret`. Follows the shared `BaseFlux` post → poll path. Two virtual try-on groups added to the tools example workflow. |
+
 ## [1.1.0] — 2026-05-25
 
 ### Added
