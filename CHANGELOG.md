@@ -2,7 +2,7 @@
 
 All notable changes to this project from v1.1.0 onward are documented in this file. Earlier history lives in `git log`.
 
-## [Unreleased]
+## [1.4.0] — 2026-08-06
 
 ### Added
 
