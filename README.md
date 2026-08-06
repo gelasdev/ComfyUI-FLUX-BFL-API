@@ -41,6 +41,9 @@ You can either use `config.ini` for a global API key, or connect a **Flux Config
 ### Generation
 | Node | Description |
 |---|---|
+| Flux 3 Video T2V (BFL) | Text-to-video with FLUX 3 Video (up to 20 s, with audio) |
+| Flux 3 Video I2V (BFL) | Image-to-video — feed keyframes from the Flux 3 Keyframes node or a single image |
+| Flux 3 Video V2V (BFL) | Video continuation from an existing MP4 (URL or base64) |
 | Flux Pro 1.1 (BFL) | Text-to-image with Flux Pro 1.1 |
 | Flux Pro 1.1 Ultra (BFL) | High-resolution text-to-image |
 | Flux Dev (BFL) | Text-to-image with Flux Dev |
@@ -49,6 +52,7 @@ You can either use `config.ini` for a global API key, or connect a **Flux Config
 | Flux Erase (BFL) | Object removal via binary mask (`flux-tools/erase-v1`) |
 | Flux Outpaint (BFL) | Image extension via target canvas + reference offsets (`flux-tools/outpainting-v1`) |
 | Flux Virtual Try-On (BFL) | Virtual try-on — dress a person image in a garment image (`flux-tools/vto-v1`) |
+| Flux Virtual Try-On v2 (BFL) | Virtual try-on v2 — sharper face preservation, inputs up to 4 MP (`flux-tools/vto-v2`) |
 | Flux Kontext Pro (BFL) | Image editing with context (up to 4 images) |
 | Flux Kontext Max (BFL) | Image editing with context, max quality |
 | Flux 2 Max (BFL) | Flux 2 Max generation |
@@ -58,6 +62,8 @@ You can either use `config.ini` for a global API key, or connect a **Flux Config
 | Flux 2 Klein 9B (BFL) | Flux 2 Klein 9B generation |
 | Flux 2 Klein 9B Preview (BFL) | Flux 2 Klein 9B preview (latest advances) |
 | Flux 2 Klein 4B (BFL) | Flux 2 Klein 4B generation |
+
+The Flux 3 Video nodes output ComfyUI's native `VIDEO` type — connect them to the built-in Save Video / preview nodes (requires ComfyUI ≥ 0.3.30).
 
 ### Finetune
 | Node | Description |
@@ -79,6 +85,8 @@ You can either use `config.ini` for a global API key, or connect a **Flux Config
 | Node | Description |
 |---|---|
 | Image to Base64 (BFL) | Convert a ComfyUI IMAGE to base64 — choose `jpeg` (default) or `png` (lossless, recommended for masks) |
+| Flux 3 Keyframes (BFL) | Combine up to 10 images (start, 8 middles, end) into the keyframes string for Flux 3 Video I2V — empty sockets are skipped; `timing: even` spreads them across the clip, `timing: custom` pins start at 0, middles at their `time_N` widgets and the end image at `end_time` (= clip length with `duration: auto`) |
+| Video to Base64 (BFL) | Convert a ComfyUI VIDEO (LoadVideo output or a Flux 3 Video result) to a base64 MP4 string — feed it into Flux 3 Video V2V's `start_video` |
 
 ## Workflow
 

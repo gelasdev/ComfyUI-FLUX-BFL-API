@@ -2,6 +2,25 @@
 
 All notable changes to this project from v1.1.0 onward are documented in this file. Earlier history lives in `git log`.
 
+## [Unreleased]
+
+### Added
+
+| Node / Feature | Endpoint | Notes |
+|---|---|---|
+| Flux 3 Video T2V (BFL) | `POST /v1/flux-3-video` | Text-to-video (`mode: t2v`), up to 20 s with synchronized audio. Knobs: `resolution` (hd / fhd), `duration` (auto or 5–20 s), `aspect_ratio`, `generate_audio`, `safety_tolerance` (0–4), `draft` (fast preview). Outputs ComfyUI's native `VIDEO` type; polling ceiling raised to 240 attempts (~20 min) for video — a real v2v+fhd task was still generating at 11 min. |
+| Flux 3 Video I2V (BFL) | `POST /v1/flux-3-video` | Image-to-video (`mode: i2v`). Single `keyframes` string input: a bare image (base64/URL), a JSON array of images, or `[seconds, image]` pairs (up to 10). Warns when 3+ plain keyframes are sent with `duration: auto` (BFL requires a set duration). Same shared knobs as T2V. |
+| Flux 3 Keyframes (BFL) | — | Utility: combines up to 10 image sockets (`start_image`, `image_2`–`image_9`, `end_image`) into the keyframes JSON string for I2V. Empty sockets are skipped. `timing: even` sends a plain list (first starts, last ends, middles spread evenly); `timing: custom` sends `[seconds, image]` pairs — the BFL schema allows no mixing, so `start_image` is auto-pinned at 0, middles use their `time_N` widgets, and `end_image` lands at `end_time` (with `duration: auto` that value is the clip length). Sorted into time order; warns on duplicate times or when `end_time` is not the largest. |
+| Flux 3 Video V2V (BFL) | `POST /v1/flux-3-video` | Video continuation (`mode: v2v`) from `start_video` (MP4 URL or base64). Same shared knobs as T2V. |
+| Video to Base64 (BFL) | — | Utility: converts a ComfyUI VIDEO input to a base64 MP4 string for V2V's `start_video`. Reads the stream source directly when it is already MP4 (in memory or on disk); other containers are remuxed to MP4 via `VideoInput.save_to`. |
+| Flux Virtual Try-On v2 (BFL) | `POST /v1/flux-tools/vto-v2` | VTO v2 (BFL release 2026-07-17): sharper face preservation and garment detail, inputs up to 4 MP. Identical request/response format to v1 — implemented as a subclass overriding only the endpoint path. |
+
+### Fixed
+
+| Issue | Detail |
+|---|---|
+| `'Generating' is not a valid Status` during polling | BFL's `get_result` reference documents two intermediate statuses the `Status` enum was missing: `Reasoning` and `Generating` (seen on FLUX 3 tasks). Both are now treated like `Pending` (wait 5 s, retry) instead of tripping the ValueError handler with a misleading "JSON parsing error" log. |
+
 ## [1.3.0] — 2026-06-25
 
 ### Added
