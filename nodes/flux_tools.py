@@ -246,6 +246,7 @@ class FluxOutpaint(BaseFlux):
 
 class FluxVirtualTryOn(BaseFlux):
     CATEGORY = "BFL"
+    URL_PATH = "flux-tools/vto-v1"
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -332,17 +333,26 @@ class FluxVirtualTryOn(BaseFlux):
             arguments["webhook_url"] = webhook_url
         if webhook_secret:
             arguments["webhook_secret"] = webhook_secret
-        return super().generate_image("flux-tools/vto-v1", arguments, config)
+        return super().generate_image(self.URL_PATH, arguments, config)
+
+
+class FluxVirtualTryOnV2(FluxVirtualTryOn):
+    """Virtual Try-On v2 (flux-tools/vto-v2): sharper face preservation and garment
+    detail, inputs up to 4 MP. Drop-in replacement for v1 — identical request format."""
+
+    URL_PATH = "flux-tools/vto-v2"
 
 
 NODE_CLASS_MAPPINGS = {
     "FluxErase_BFL": FluxErase,
     "FluxOutpaint_BFL": FluxOutpaint,
     "FluxVirtualTryOn_BFL": FluxVirtualTryOn,
+    "FluxVirtualTryOnV2_BFL": FluxVirtualTryOnV2,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxErase_BFL": "Flux Erase (BFL)",
     "FluxOutpaint_BFL": "Flux Outpaint (BFL)",
     "FluxVirtualTryOn_BFL": "Flux Virtual Try-On (BFL)",
+    "FluxVirtualTryOnV2_BFL": "Flux Virtual Try-On v2 (BFL)",
 }
