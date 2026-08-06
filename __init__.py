@@ -5,6 +5,7 @@ node_list = [
     "api_node",
     "finetune",
     "flux_tools",
+    "flux3_video",
     "config_node",
     "utils",
 ]
