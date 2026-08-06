@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# pre-commit — block committing BFL API keys.
+#
+# Inspects the STAGED content (what would actually land in the commit) of:
+#   1. config.ini            — X_KEY must stay the `your-key` placeholder
+#   2. workflows/*.json      — FluxConfig_BFL nodes must not carry a real x_key
+#   3. every staged addition — nothing matching `bfl_<16+ chars>` key material
+#
+# Installed via `git config core.hooksPath .githooks` (run once per clone).
+# Do not bypass with --no-verify — clear the key from the file instead.
+
+set -euo pipefail
+
+fail=0
+
+# 1) config.ini: staged X_KEY must be empty or the placeholder.
+for f in $(git diff --cached --name-only | grep -E '(^|/)config\.ini$' || true); do
+  value=$(git show ":$f" | grep -iE '^[[:space:]]*X_KEY[[:space:]]*=' | head -1 \
+    | sed -E 's/^[^=]*=[[:space:]]*//; s/[[:space:]]+$//')
+  if [ -n "$value" ] && [ "$value" != "your-key" ]; then
+    echo "pre-commit: $f is staged with a real X_KEY (${value:0:6}...) — keep the \`your-key\` placeholder." >&2
+    fail=1
+  fi
+done
+
+# 2) workflow JSONs: FluxConfig_BFL x_key widget must be empty or a placeholder.
+for f in $(git diff --cached --name-only -- 'workflows/*.json'); do
+  if ! git show ":$f" | python3 -c "
+import json, sys
+try:
+    wf = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)  # unparseable JSON — the generic scan below still applies
+ok = True
+for node in wf.get('nodes', []):
+    if node.get('type') == 'FluxConfig_BFL':
+        vals = node.get('widgets_values') or []
+        key = vals[0] if vals else ''
+        if key and key not in ('bfl_xxx', 'your-key'):
+            print('pre-commit: $f: FluxConfig_BFL node %s carries a real x_key (%s...) — clear the widget '
+                  'before committing.' % (node.get('id'), key[:6]), file=sys.stderr)
+            ok = False
+sys.exit(0 if ok else 1)
+"; then
+    fail=1
+  fi
+done
+
+# 3) generic scan: no BFL-style key material in any staged addition.
+if git diff --cached --diff-filter=ACM | grep -E '^\+' | grep -qE 'bfl_[A-Za-z0-9_-]{16,}'; then
+  echo "pre-commit: staged changes contain what looks like a BFL API key (bfl_...)." >&2
+  fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+  cat >&2 <<'EOF'
+
+Commit blocked: a real BFL API key would have been committed.
+Remove the key from the file (keep placeholders: `your-key` in config.ini,
+empty or `bfl_xxx` in workflow FluxConfig nodes), re-stage, and commit again.
+If a key ever reaches the public repo, rotate it in the BFL dashboard.
+EOF
+  exit 1
+fi
+
+exit 0
