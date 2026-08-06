@@ -107,8 +107,8 @@ class BaseFlux:
                 if Status(status) == Status.READY:
                     print(f"[BFL] Task {task_id} ready after {elapsed:.1f}s — downloading image")
                     return self.process_result(result, output_format=output_format)
-                elif Status(status) == Status.PENDING:
-                    print(f"[BFL] Attempt {attempt}/{max_attempts}: pending — retrying in 5s")
+                elif Status(status) in [Status.PENDING, Status.REASONING, Status.GENERATING]:
+                    print(f"[BFL] Attempt {attempt}/{max_attempts}: {status} — retrying in 5s")
                     attempt += 1
                     if attempt <= max_attempts:
                         time.sleep(5)
