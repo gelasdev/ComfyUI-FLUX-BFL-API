@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# pre-push — block pushing BFL API keys.
+#
+# pre-commit only sees the commit being made; a key can still reach the remote
+# through a commit made with --no-verify, in a clone without the hooks, or
+# before they were installed. This hook scans EVERY commit about to be pushed —
+# not just the tip, since a key added in one commit and removed in the next
+# still lands in the remote history — with the same rules as pre-commit:
+#   1. config.ini            — X_KEY must stay the `your-key` placeholder
+#   2. workflows/*.json      — FluxConfig_BFL nodes must not carry a real x_key
+#   3. every added line      — nothing matching `bfl_<16+ chars>` key material
+#
+# Installed via `git config core.hooksPath .githooks` (run once per clone).
+# Do not bypass with --no-verify — rewrite the offending commit instead.
+
+set -euo pipefail
+
+EMPTY_TREE=$(git hash-object -t tree /dev/null)
+fail=0
+
+report() {
+  echo "pre-push: $1" >&2
+  fail=1
+}
+
+scan_commit() {
+  local commit=$1 parent label f value
+  label="$(git log -1 --format='%h "%s"' "$commit")"
+  # Diff against the first parent (the empty tree for a root commit), so merge
+  # commits are scanned too instead of showing an empty combined diff.
+  parent=$(git rev-parse --verify --quiet "$commit^1" || echo "$EMPTY_TREE")
+
+  # 1) config.ini: X_KEY must be empty or the placeholder.
+  while IFS= read -r f; do
+    value=$(git show "$commit:$f" | grep -iE '^[[:space:]]*X_KEY[[:space:]]*=' | head -1 \
+      | sed -E 's/^[^=]*=[[:space:]]*//; s/[[:space:]]+$//' || true)
+    if [ -n "$value" ] && [ "$value" != "your-key" ]; then
+      report "commit $label: $f has a real X_KEY (${value:0:6}...) — keep the \`your-key\` placeholder."
+    fi
+  done < <(git diff --name-only --diff-filter=ACMR "$parent" "$commit" | grep -E '(^|/)config\.ini$' || true)
+
+  # 2) workflow JSONs: FluxConfig_BFL x_key widget must be empty or a placeholder.
+  while IFS= read -r f; do
+    if ! git show "$commit:$f" | python3 -c "
+import json, sys
+try:
+    wf = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)  # unparseable JSON — the generic scan below still applies
+ok = True
+for node in wf.get('nodes', []):
+    if node.get('type') == 'FluxConfig_BFL':
+        vals = node.get('widgets_values') or []
+        key = vals[0] if vals else ''
+        if key and key not in ('bfl_xxx', 'your-key'):
+            print('pre-push: commit %s: %s: FluxConfig_BFL node %s carries a real x_key (%s...).'
+                  % (sys.argv[1], sys.argv[2], node.get('id'), key[:6]), file=sys.stderr)
+            ok = False
+sys.exit(0 if ok else 1)
+" "$label" "$f"; then
+      fail=1
+    fi
+  done < <(git diff --name-only --diff-filter=ACMR "$parent" "$commit" -- 'workflows/*.json')
+
+  # 3) generic scan: no BFL-style key material in any added line. Redirect instead of
+  #    `grep -q`: its early exit would SIGPIPE the upstream grep and, under pipefail,
+  #    turn a match into a pass whenever a long diff follows the matching line.
+  if git diff "$parent" "$commit" | grep -E '^\+' | grep -E 'bfl_[A-Za-z0-9_-]{16,}' >/dev/null; then
+    report "commit $label adds what looks like a BFL API key (bfl_...)."
+  fi
+}
+
+# stdin: one "<local ref> <local sha> <remote ref> <remote sha>" line per ref being pushed.
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ $local_sha =~ ^0+$ ]]; then
+    continue # deleting a remote ref — nothing is uploaded
+  fi
+  if [[ $remote_sha =~ ^0+$ ]] || ! git cat-file -e "$remote_sha^{commit}" 2>/dev/null; then
+    # New remote ref, or its tip is unknown locally: every commit no remote-tracking ref has yet.
+    commits=$(git rev-list "$local_sha" --not --remotes)
+  else
+    commits=$(git rev-list "$remote_sha..$local_sha")
+  fi
+  for commit in $commits; do
+    scan_commit "$commit"
+  done
+done
+
+if [ "$fail" -ne 0 ]; then
+  cat >&2 <<'EOF'
+
+Push blocked: a real BFL API key would reach the remote history.
+Removing the key in a new commit is not enough — the old commit still carries it.
+Rewrite the offending commit (git commit --amend for the tip, git rebase for older
+ones) so no pushed commit contains the key, then push again.
+If a key ever reached the public repo, rotate it in the BFL dashboard.
+EOF
+  exit 1
+fi
+
+exit 0
