@@ -205,6 +205,28 @@ class FluxOutpaint(BaseFlux):
                         ),
                     },
                 ),
+                "safety_tolerance": (
+                    "INT",
+                    {
+                        "default": 2,
+                        "min": 0,
+                        "max": 5,
+                        "tooltip": (
+                            "Tolerance level for input and output moderation. "
+                            "Between 0 and 5, 0 being most strict, 5 being least strict."
+                        ),
+                    },
+                ),
+                "disable_pup": (
+                    "BOOLEAN",
+                    {
+                        "default": False,
+                        "tooltip": (
+                            "Skip the image-aware prompt upsampler for lower latency. Quality in the extended "
+                            "region may be lower for scenes that benefit from semantic guidance. Applies to both modes."
+                        ),
+                    },
+                ),
                 "config": (
                     "BFL_CONFIG",
                     {"tooltip": "Optional Flux Config (BFL) override for x-key, base URL, and region."},
@@ -224,6 +246,8 @@ class FluxOutpaint(BaseFlux):
         reference_offset_y=0,
         auto_crop=False,
         mode="high",
+        safety_tolerance=2,
+        disable_pup=False,
         config=None,
     ):
         arguments = {
@@ -241,6 +265,10 @@ class FluxOutpaint(BaseFlux):
             arguments["auto_crop"] = auto_crop
         if mode != "high":
             arguments["mode"] = mode
+        if safety_tolerance != 2:
+            arguments["safety_tolerance"] = safety_tolerance
+        if disable_pup:
+            arguments["disable_pup"] = True
         return super().generate_image("flux-tools/outpainting-v1", arguments, config)
 
 
@@ -343,11 +371,84 @@ class FluxVirtualTryOnV2(FluxVirtualTryOn):
     URL_PATH = "flux-tools/vto-v2"
 
 
+class FluxDeblur(BaseFlux):
+    CATEGORY = "BFL"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": (
+                    "STRING",
+                    {"default": "", "tooltip": "Blurry input image (base64-encoded string or image URL). Max 4 MP."},
+                ),
+                "safety_tolerance": (
+                    "INT",
+                    {
+                        "default": 2,
+                        "min": 0,
+                        "max": 5,
+                        "tooltip": (
+                            "Tolerance level for input and output moderation. "
+                            "Between 0 and 5, 0 being most strict, 5 being least strict."
+                        ),
+                    },
+                ),
+                "output_format": (
+                    ["png", "jpeg"],
+                    {"default": "png", "tooltip": "png (default) or jpeg."},
+                ),
+            },
+            "optional": {
+                "seed": (
+                    "INT",
+                    {"default": -1, "tooltip": "Optional seed for reproducibility. -1 = random."},
+                ),
+                "webhook_url": (
+                    "STRING",
+                    {"default": "", "tooltip": "URL to receive webhook notifications."},
+                ),
+                "webhook_secret": (
+                    "STRING",
+                    {"default": "", "tooltip": "Optional secret for webhook signature verification."},
+                ),
+                "config": (
+                    "BFL_CONFIG",
+                    {"tooltip": "Optional Flux Config (BFL) override for x-key, base URL, and region."},
+                ),
+            },
+        }
+
+    def generate_image(
+        self,
+        image,
+        safety_tolerance,
+        output_format,
+        seed=-1,
+        webhook_url="",
+        webhook_secret="",
+        config=None,
+    ):
+        arguments = {
+            "image": image,
+            "safety_tolerance": safety_tolerance,
+            "output_format": output_format,
+        }
+        if seed != -1:
+            arguments["seed"] = seed
+        if webhook_url:
+            arguments["webhook_url"] = webhook_url
+        if webhook_secret:
+            arguments["webhook_secret"] = webhook_secret
+        return super().generate_image("flux-tools/deblur-v1", arguments, config)
+
+
 NODE_CLASS_MAPPINGS = {
     "FluxErase_BFL": FluxErase,
     "FluxOutpaint_BFL": FluxOutpaint,
     "FluxVirtualTryOn_BFL": FluxVirtualTryOn,
     "FluxVirtualTryOnV2_BFL": FluxVirtualTryOnV2,
+    "FluxDeblur_BFL": FluxDeblur,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -355,4 +456,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FluxOutpaint_BFL": "Flux Outpaint (BFL)",
     "FluxVirtualTryOn_BFL": "Flux Virtual Try-On (BFL)",
     "FluxVirtualTryOnV2_BFL": "Flux Virtual Try-On v2 (BFL)",
+    "FluxDeblur_BFL": "Flux Deblur (BFL)",
 }

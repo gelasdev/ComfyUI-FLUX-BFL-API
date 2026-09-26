@@ -114,6 +114,9 @@ class BaseFlux:
                         time.sleep(5)
                 elif Status(status) in [Status.ERROR, Status.CONTENT_MODERATED, Status.REQUEST_MODERATED]:
                     print(f"[BFL] Terminal status '{status}' — stopping retries")
+                    # Moderated responses name the triggering categories in details["Moderation Reasons"]
+                    if result.get("details"):
+                        print(f"[BFL] Details: {result['details']}")
                     break
                 else:
                     print(f"[BFL] Unknown status '{status}' on attempt {attempt}/{max_attempts}")

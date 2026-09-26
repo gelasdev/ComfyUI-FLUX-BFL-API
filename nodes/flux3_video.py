@@ -13,6 +13,7 @@ except ImportError:
     print("[BFL] comfy_api.input_impl not found — Flux 3 Video nodes disabled (requires ComfyUI >= 0.3.30)")
 
 VIDEO_DURATIONS = ["auto"] + [str(i) for i in range(5, 21)]
+V2V_DURATIONS = ["auto"] + [str(i) for i in range(5, 16)]  # BFL caps v2v at 15 s (release 2026-08-17)
 VIDEO_ASPECT_RATIOS = ["auto", "21:9", "2:1", "16:9", "4:3", "1:1", "3:4", "9:16"]
 
 
@@ -21,6 +22,7 @@ class BaseFlux3Video(BaseFlux):
     RETURN_TYPES = ("VIDEO",)
     RETURN_NAMES = ("video",)
     FUNCTION = "generate_video"
+    URL_PATH = "flux-3-video"
 
     # Video generation outlasts the 40-attempt image ceiling; 5s interval -> ~20 min.
     # A real v2v+fhd task was still Generating at 11 min, so 120 attempts proved too low.
@@ -30,7 +32,7 @@ class BaseFlux3Video(BaseFlux):
     def common_input_types(cls):
         return {
             "prompt": ("STRING", {"default": "", "multiline": True}),
-            "resolution": (["hd", "fhd"], {"default": "hd"}),
+            "resolution": (["hd", "fhd", "qhd", "uhd"], {"default": "hd"}),
             "duration": (VIDEO_DURATIONS, {"default": "auto"}),
             "aspect_ratio": (VIDEO_ASPECT_RATIOS, {"default": "auto"}),
             "generate_audio": ("BOOLEAN", {"default": True}),
@@ -42,6 +44,10 @@ class BaseFlux3Video(BaseFlux):
         self, mode, prompt, resolution, duration, aspect_ratio, generate_audio, safety_tolerance, draft
     ):
         arguments = {"mode": mode, "prompt": prompt}
+        if draft and resolution != "hd":
+            # BFL rejects draft with any resolution other than hd; drafts always preview at hd
+            print(f"[BFL] Warning: drafts always render at hd — ignoring resolution '{resolution}'")
+            resolution = "hd"
         if resolution != "hd":
             arguments["resolution"] = resolution
         if duration != "auto":
@@ -97,7 +103,7 @@ class BaseFlux3Video(BaseFlux):
 
     def generate_video_request(self, arguments, config=None):
         try:
-            task_id = self.post_request("flux-3-video", arguments, config)
+            task_id = self.post_request(self.URL_PATH, arguments, config)
             if task_id:
                 print(f"Task ID '{task_id}'")
                 return self.get_result(task_id, max_attempts=self.VIDEO_MAX_ATTEMPTS, config_override=config)
@@ -266,6 +272,7 @@ class Flux3VideoV2V(BaseFlux3Video):
     @classmethod
     def INPUT_TYPES(cls):
         common = cls.common_input_types()
+        common["duration"] = (V2V_DURATIONS, {"default": "auto"})
         return {
             "required": {"prompt": common.pop("prompt"), "start_video": ("STRING", {"default": ""}), **common},
             "optional": {"config": ("BFL_CONFIG",)},
@@ -290,12 +297,137 @@ class Flux3VideoV2V(BaseFlux3Video):
         return self.generate_video_request(arguments, config)
 
 
+class FluxVideoEdit(BaseFlux3Video):
+    """FLUX Video Edit [fast] (flux-tools/video-edit-v1): transform a clip with an edit instruction.
+
+    Duration, aspect ratio and audio follow the source, which is downscaled to 720p.
+    The endpoint rejects every field beyond video, prompt and safety_tolerance (no seed,
+    webhook or generation controls), so none are exposed.
+    """
+
+    URL_PATH = "flux-tools/video-edit-v1"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "prompt": (
+                    "STRING",
+                    {"default": "", "multiline": True, "tooltip": 'Edit instruction, e.g. "Remove the orange bucket."'},
+                ),
+                "video": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "Clip to edit: MP4 URL or base64 (from Video to Base64). "
+                        "Up to 15 s and 50 MiB, at least 160 px per side",
+                    },
+                ),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 4}),
+            },
+            "optional": {"config": ("BFL_CONFIG",)},
+        }
+
+    def generate_video(self, prompt, video, safety_tolerance, config=None):
+        arguments = {"video": video, "prompt": prompt}
+        if safety_tolerance != 2:
+            arguments["safety_tolerance"] = safety_tolerance
+        return self.generate_video_request(arguments, config)
+
+
+class FluxVideoUpscale(BaseFlux3Video):
+    """FLUX Video Upscale (flux-tools/video-upscale-v1): 1.5x-3x super-resolution of a clip.
+
+    The output keeps the source aspect ratio and audio track.
+    """
+
+    URL_PATH = "flux-tools/video-upscale-v1"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_video": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "tooltip": "Clip to upscale: MP4 URL or base64 (from Video to Base64). "
+                        "Up to 20 s, 50 MB and 2560x1440",
+                    },
+                ),
+                "upscale_factor": (
+                    "FLOAT",
+                    {
+                        "default": 2.0,
+                        "min": 1.5,
+                        "max": 3.0,
+                        "step": 0.1,
+                        "tooltip": "Output scale relative to the source. Frames are capped near 14 MP, "
+                        "so large sources are upscaled by less than requested",
+                    },
+                ),
+                "creativity": (
+                    "INT",
+                    {
+                        "default": 1,
+                        "min": 0,
+                        "max": 1,
+                        "tooltip": "0 = precise (source-faithful, for faces and products), "
+                        "1 = creative detail enhancement",
+                    },
+                ),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 4}),
+            },
+            "optional": {
+                "prompt": (
+                    "STRING",
+                    {
+                        "default": "",
+                        "multiline": True,
+                        "tooltip": "Optional description of the clip's content, steering the enhanced detail",
+                    },
+                ),
+                "webhook_url": ("STRING", {"default": ""}),
+                "webhook_secret": ("STRING", {"default": ""}),
+                "config": ("BFL_CONFIG",),
+            },
+        }
+
+    def generate_video(
+        self,
+        input_video,
+        upscale_factor,
+        creativity,
+        safety_tolerance,
+        prompt="",
+        webhook_url="",
+        webhook_secret="",
+        config=None,
+    ):
+        arguments = {"input_video": input_video}
+        if upscale_factor != 2.0:
+            arguments["upscale_factor"] = upscale_factor
+        if creativity != 1:
+            arguments["creativity"] = creativity
+        if safety_tolerance != 2:
+            arguments["safety_tolerance"] = safety_tolerance
+        if prompt and prompt.strip():
+            arguments["prompt"] = prompt
+        if webhook_url:
+            arguments["webhook_url"] = webhook_url
+        if webhook_secret:
+            arguments["webhook_secret"] = webhook_secret
+        return self.generate_video_request(arguments, config)
+
+
 NODE_CLASS_MAPPINGS = (
     {
         "Flux3VideoT2V_BFL": Flux3VideoT2V,
         "Flux3VideoI2V_BFL": Flux3VideoI2V,
         "Flux3VideoV2V_BFL": Flux3VideoV2V,
         "Flux3Keyframes_BFL": Flux3Keyframes,
+        "FluxVideoEdit_BFL": FluxVideoEdit,
+        "FluxVideoUpscale_BFL": FluxVideoUpscale,
     }
     if VideoFromFile
     else {}
@@ -307,6 +439,8 @@ NODE_DISPLAY_NAME_MAPPINGS = (
         "Flux3VideoI2V_BFL": "Flux 3 Video I2V (BFL)",
         "Flux3VideoV2V_BFL": "Flux 3 Video V2V (BFL)",
         "Flux3Keyframes_BFL": "Flux 3 Keyframes (BFL)",
+        "FluxVideoEdit_BFL": "Flux Video Edit (BFL)",
+        "FluxVideoUpscale_BFL": "Flux Video Upscale (BFL)",
     }
     if VideoFromFile
     else {}

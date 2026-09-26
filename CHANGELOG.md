@@ -2,6 +2,30 @@
 
 All notable changes to this project from v1.1.0 onward are documented in this file. Earlier history lives in `git log`.
 
+## [Unreleased]
+
+### Added
+
+| Node / Feature | Endpoint | Notes |
+|---|---|---|
+| Flux Video Edit (BFL) | `POST /v1/flux-tools/video-edit-v1` | FLUX Video Edit [fast]: `video` (MP4 URL or base64, ≤ 15 s / 50 MiB) + edit `prompt` + `safety_tolerance` (0–4). The endpoint rejects every other field (no seed, webhook or generation controls), so none are exposed. Duration, aspect ratio and audio follow the source; output is 720p. Outputs `VIDEO`, shares the Flux 3 Video polling ceiling. |
+| Flux Video Upscale (BFL) | `POST /v1/flux-tools/video-upscale-v1` | BFL release 2026-08-20. `input_video` (≤ 20 s, 50 MB, 2560×1440), `upscale_factor` (1.5–3, default 2), `creativity` (0 precise / 1 creative, default 1), optional `prompt`, `safety_tolerance` (0–4), webhook. Outputs `VIDEO`. |
+| Flux Deblur (BFL) | `POST /v1/flux-tools/deblur-v1` | BFL release 2026-06-25. Single `image` (base64 or URL, ≤ 4 MP), no prompt or mask; `safety_tolerance` (0–5), `output_format` (png default), `seed`, webhook. |
+| `qhd` / `uhd` resolution on Flux 3 Video T2V / I2V / V2V | `POST /v1/flux-3-video` | BFL release 2026-09-10: 2K (2560×1440) and 4K (3840×2176) at 16:9 from a single request. |
+| `disable_pup` on Flux 2 Max / Pro / Pro Preview | `POST /v1/flux-2-{max,pro,pro-preview}` | Turns off the automatic prompt upsampling these models apply by default. Only sent when enabled. |
+| `safety_tolerance` and `disable_pup` on Flux Outpaint (BFL) | `POST /v1/flux-tools/outpainting-v1` | Both were in the API schema but not exposed. Only sent when changed from the defaults (2 / false). |
+| Example workflow groups | — | `BFL-API-tools.json`: a **Flux Deblur** group (Load Image → Image to Base64 → Flux Deblur → Preview). `BFL-API-flux-3-video.json`: **FLUX Video Edit** and **FLUX Video Upscale** groups (Load Video → Video to Base64 → node → Save Video). Appended only — existing nodes, links and groups are unchanged; new groups are bypassed like the rest. |
+| Moderation / error details in the polling log | `GET /v1/get_result` | On a terminal status (`Error`, `Request Moderated`, `Content Moderated`) the `details` payload is printed — for moderation it carries the `Moderation Reasons` categories added by BFL on 2026-06-15. |
+
+### Fixed
+
+| Issue | Detail |
+|---|---|
+| Fresh Flux 2 nodes failed validation | All seven Flux 2 nodes defaulted `width` / `height` to `0` (meaning "not sent — BFL picks the size") but declared `min: 64`, so ComfyUI rejected every new Flux 2 node, and the Pro Preview / Klein 9B Preview example groups, with *"Value 0 smaller than min of 64"* until both were changed by hand. `min` is now `0` with a tooltip; `0` is still omitted from the request and any other value is sent as before. |
+| Finetune example workflow needed a third-party node pack | `BFL-API-finetune.json` used `ShowText\|pysssss` (ComfyUI-Custom-Scripts) to display results, plus an unused `My Finetunes` group-node template — both surfaced as "Missing Node Packs" on load. The four display nodes are now ComfyUI's core **Preview as Text** (`PreviewAny`), the stale template is removed, and the four utility groups are resized to fit. Verified in ComfyUI 0.37.0 (frontend 1.52.7). |
+| Flux 3 Video V2V offered 16–20 s durations | BFL capped video continuation at 15 s on 2026-08-17; longer values returned 422 and a blank video. The V2V `duration` list now stops at 15. T2V / I2V stay at 20. |
+| `draft: true` with a non-`hd` resolution was rejected | Drafts always render at `hd` and BFL rejects any other resolution with `draft`. The node now logs a warning and sends the draft at `hd` instead of wasting the request. |
+
 ## [1.4.0] — 2026-08-06
 
 ### Added

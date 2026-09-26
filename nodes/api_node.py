@@ -355,11 +355,22 @@ class Flux2Max(BaseFlux):
                 "input_image_6": ("STRING", {"default": ""}),
                 "input_image_7": ("STRING", {"default": ""}),
                 "input_image_8": ("STRING", {"default": ""}),
-                "width": ("INT", {"default": 0, "min": 64}),
-                "height": ("INT", {"default": 0, "min": 64}),
+                "width": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
+                "height": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
                 "seed": ("INT", {"default": -1}),
                 "webhook_url": ("STRING", {"default": ""}),
                 "webhook_secret": ("STRING", {"default": ""}),
+                "disable_pup": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "Disable automatic prompt upsampling (on by default) to generate from the prompt "
+                               "exactly as written"
+                }),
                 "config": ("BFL_CONFIG",)
             }
         }
@@ -367,7 +378,7 @@ class Flux2Max(BaseFlux):
     def generate_image(self, prompt, safety_tolerance, output_format,
                        input_image="", input_image_2="", input_image_3="", input_image_4="",
                        input_image_5="", input_image_6="", input_image_7="", input_image_8="",
-                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", config=None):
+                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", disable_pup=False, config=None):
         arguments = {
             "prompt": prompt,
             "safety_tolerance": safety_tolerance,
@@ -391,6 +402,8 @@ class Flux2Max(BaseFlux):
             arguments["webhook_url"] = webhook_url
         if webhook_secret:
             arguments["webhook_secret"] = webhook_secret
+        if disable_pup:
+            arguments["disable_pup"] = True
         try:
             task_id = self.post_request("flux-2-max", arguments, config)
             if task_id:
@@ -422,11 +435,22 @@ class Flux2Pro(BaseFlux):
                 "input_image_6": ("STRING", {"default": ""}),
                 "input_image_7": ("STRING", {"default": ""}),
                 "input_image_8": ("STRING", {"default": ""}),
-                "width": ("INT", {"default": 0, "min": 64}),
-                "height": ("INT", {"default": 0, "min": 64}),
+                "width": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
+                "height": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
                 "seed": ("INT", {"default": -1}),
                 "webhook_url": ("STRING", {"default": ""}),
                 "webhook_secret": ("STRING", {"default": ""}),
+                "disable_pup": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "Disable automatic prompt upsampling (on by default) to generate from the prompt "
+                               "exactly as written"
+                }),
                 "config": ("BFL_CONFIG",)
             }
         }
@@ -434,7 +458,7 @@ class Flux2Pro(BaseFlux):
     def generate_image(self, prompt, safety_tolerance, output_format,
                        input_image="", input_image_2="", input_image_3="", input_image_4="",
                        input_image_5="", input_image_6="", input_image_7="", input_image_8="",
-                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", config=None):
+                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", disable_pup=False, config=None):
         arguments = {
             "prompt": prompt,
             "safety_tolerance": safety_tolerance,
@@ -458,6 +482,8 @@ class Flux2Pro(BaseFlux):
             arguments["webhook_url"] = webhook_url
         if webhook_secret:
             arguments["webhook_secret"] = webhook_secret
+        if disable_pup:
+            arguments["disable_pup"] = True
         try:
             task_id = self.post_request("flux-2-pro", arguments, config)
             if task_id:
@@ -489,11 +515,22 @@ class Flux2ProPreview(BaseFlux):
                 "input_image_6": ("STRING", {"default": ""}),
                 "input_image_7": ("STRING", {"default": ""}),
                 "input_image_8": ("STRING", {"default": ""}),
-                "width": ("INT", {"default": 0, "min": 64}),
-                "height": ("INT", {"default": 0, "min": 64}),
+                "width": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
+                "height": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
                 "seed": ("INT", {"default": -1}),
                 "webhook_url": ("STRING", {"default": ""}),
                 "webhook_secret": ("STRING", {"default": ""}),
+                "disable_pup": ("BOOLEAN", {
+                    "default": False,
+                    "tooltip": "Disable automatic prompt upsampling (on by default) to generate from the prompt "
+                               "exactly as written"
+                }),
                 "config": ("BFL_CONFIG",)
             }
         }
@@ -501,7 +538,7 @@ class Flux2ProPreview(BaseFlux):
     def generate_image(self, prompt, safety_tolerance, output_format,
                        input_image="", input_image_2="", input_image_3="", input_image_4="",
                        input_image_5="", input_image_6="", input_image_7="", input_image_8="",
-                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", config=None):
+                       width=0, height=0, seed=-1, webhook_url="", webhook_secret="", disable_pup=False, config=None):
         arguments = {
             "prompt": prompt,
             "safety_tolerance": safety_tolerance,
@@ -525,6 +562,8 @@ class Flux2ProPreview(BaseFlux):
             arguments["webhook_url"] = webhook_url
         if webhook_secret:
             arguments["webhook_secret"] = webhook_secret
+        if disable_pup:
+            arguments["disable_pup"] = True
         try:
             task_id = self.post_request("flux-2-pro-preview", arguments, config)
             if task_id:
@@ -558,8 +597,14 @@ class Flux2Flex(BaseFlux):
                 "input_image_6": ("STRING", {"default": ""}),
                 "input_image_7": ("STRING", {"default": ""}),
                 "input_image_8": ("STRING", {"default": ""}),
-                "width": ("INT", {"default": 0, "min": 64}),
-                "height": ("INT", {"default": 0, "min": 64}),
+                "width": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
+                "height": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
                 "seed": ("INT", {"default": -1}),
                 "webhook_url": ("STRING", {"default": ""}),
                 "webhook_secret": ("STRING", {"default": ""}),
@@ -623,8 +668,14 @@ class Flux2Klein9b(BaseFlux):
                 "input_image_2": ("STRING", {"default": ""}),
                 "input_image_3": ("STRING", {"default": ""}),
                 "input_image_4": ("STRING", {"default": ""}),
-                "width": ("INT", {"default": 0, "min": 64}),
-                "height": ("INT", {"default": 0, "min": 64}),
+                "width": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
+                "height": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
                 "seed": ("INT", {"default": -1}),
                 "webhook_url": ("STRING", {"default": ""}),
                 "webhook_secret": ("STRING", {"default": ""}),
@@ -683,8 +734,14 @@ class Flux2Klein9bPreview(BaseFlux):
                 "input_image_2": ("STRING", {"default": ""}),
                 "input_image_3": ("STRING", {"default": ""}),
                 "input_image_4": ("STRING", {"default": ""}),
-                "width": ("INT", {"default": 0, "min": 64}),
-                "height": ("INT", {"default": 0, "min": 64}),
+                "width": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
+                "height": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
                 "seed": ("INT", {"default": -1}),
                 "webhook_url": ("STRING", {"default": ""}),
                 "webhook_secret": ("STRING", {"default": ""}),
@@ -743,8 +800,14 @@ class Flux2Klein4b(BaseFlux):
                 "input_image_2": ("STRING", {"default": ""}),
                 "input_image_3": ("STRING", {"default": ""}),
                 "input_image_4": ("STRING", {"default": ""}),
-                "width": ("INT", {"default": 0, "min": 64}),
-                "height": ("INT", {"default": 0, "min": 64}),
+                "width": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
+                "height": ("INT", {
+                    "default": 0, "min": 0,
+                    "tooltip": "0 = not sent (BFL picks the size); otherwise at least 64"
+                }),
                 "seed": ("INT", {"default": -1}),
                 "webhook_url": ("STRING", {"default": ""}),
                 "webhook_secret": ("STRING", {"default": ""}),
