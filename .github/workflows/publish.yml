@@ -19,6 +19,14 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+      # comfy-cli sends $COMFY_NODE_CHANGELOG as the version's changelog (the registry's "Updates" section)
+      - name: Build registry changelog from CHANGELOG.md
+        run: |
+          {
+            echo "COMFY_NODE_CHANGELOG<<CHANGELOG_EOF"
+            python3 .github/scripts/registry_changelog.py
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_ENV"
       - name: Publish Custom Node
         uses: Comfy-Org/publish-node-action@v1
         with:
