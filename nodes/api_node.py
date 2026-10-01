@@ -850,6 +850,65 @@ class Flux2Klein4b(BaseFlux):
             return self.create_blank_image()
 
 
+class Flux3Image(BaseFlux):
+    CATEGORY = "BFL/Flux3"
+    # 4k renders can take several minutes (BFL docs); 5s interval -> ~10 min
+    MAX_ATTEMPTS = 120
+    IMAGE_SLOTS = [f"image_{i}" for i in range(1, 11)]
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        image_socket = ("STRING", {
+            "forceInput": True,
+            "tooltip": "Reference image (base64 from Image to Base64, or a URL). The prompt calls the "
+                       "connected images Image 1, Image 2, ... in socket order"
+        })
+        return {
+            "required": {
+                "prompt": ("STRING", {"default": "", "multiline": True}),
+                "resolution": (["768sq", "1k", "1.5k", "2k", "4k"], {"default": "1k"}),
+                "aspect_ratio": (["auto", "21:9", "2:1", "16:9", "3:2", "7:5", "4:3", "5:4", "1:1", "4:5", "3:4",
+                                  "5:7", "2:3", "9:16", "1:2", "9:21"], {"default": "auto"}),
+                "grounding": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "Let FLUX 3 research the prompt with web and image search before generating"
+                }),
+                "safety_tolerance": ("INT", {"default": 2, "min": 0, "max": 4})
+            },
+            "optional": {
+                **{name: image_socket for name in cls.IMAGE_SLOTS},
+                "config": ("BFL_CONFIG",)
+            }
+        }
+
+    def generate_image(self, prompt, resolution, aspect_ratio, grounding, safety_tolerance, config=None, **images):
+        arguments = {"prompt": prompt}
+        connected = [name for name in self.IMAGE_SLOTS if images.get(name)]
+        if connected:
+            arguments["images"] = [images[name] for name in connected]
+            if connected != self.IMAGE_SLOTS[:len(connected)]:
+                print(f"[BFL] Warning: references {connected} skip a socket — BFL numbers them Image 1.."
+                      f"{len(connected)} in this order, so 'Image N' in the prompt shifts")
+        if resolution != "1k":
+            arguments["resolution"] = resolution
+        if aspect_ratio != "auto":
+            arguments["aspect_ratio"] = aspect_ratio
+        if safety_tolerance != 2:
+            arguments["safety_tolerance"] = safety_tolerance
+        if not grounding:
+            arguments["grounding"] = False
+        try:
+            task_id = self.post_request("flux-3-image", arguments, config)
+            if task_id:
+                # png: process_result re-encodes the result into this format, and jpeg would recompress it
+                return self.get_result(task_id, output_format="png", max_attempts=self.MAX_ATTEMPTS,
+                                       config_override=config)
+            return self.create_blank_image()
+        except Exception as e:
+            print(f"[BFL] Error generating image: {str(e)}")
+            return self.create_blank_image()
+
+
 class FluxCredits:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "get_credits"
@@ -887,6 +946,7 @@ NODE_CLASS_MAPPINGS = {
     "Flux2Klein9b_BFL": Flux2Klein9b,
     "Flux2Klein9bPreview_BFL": Flux2Klein9bPreview,
     "Flux2Klein4b_BFL": Flux2Klein4b,
+    "Flux3Image_BFL": Flux3Image,
     "FluxCredits_BFL": FluxCredits
 }
 
@@ -905,5 +965,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Flux2Klein9b_BFL": "Flux 2 Klein 9B (BFL)",
     "Flux2Klein9bPreview_BFL": "Flux 2 Klein 9B Preview (BFL)",
     "Flux2Klein4b_BFL": "Flux 2 Klein 4B (BFL)",
+    "Flux3Image_BFL": "Flux 3 Image (BFL)",
     "FluxCredits_BFL": "Flux Credits (BFL)"
 }

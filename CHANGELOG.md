@@ -2,6 +2,22 @@
 
 All notable changes to this project from v1.1.0 onward are documented in this file. Earlier history lives in `git log`.
 
+## [Unreleased]
+
+### Added
+
+| Node / Feature | Endpoint | Notes |
+|---|---|---|
+| Flux 3 Image (BFL) | `POST /v1/flux-3-image` | BFL release 2026-10-01. One node for text-to-image and editing: `prompt` (bounding boxes go at its end as a JSON list), up to 10 reference sockets `image_1`–`image_10` sent as `images` and numbered Image 1…N in socket order (a skipped socket logs a warning, since the numbering shifts), `resolution` (`768sq` / `1k` / `1.5k` / `2k` / `4k`), `aspect_ratio` (15 ratios or `auto`), `grounding` (web and image search, on by default), `safety_tolerance` (0–4). The endpoint rejects `seed`, `output_format` and webhooks, so none are exposed. Polls up to 120 × 5 s because `4k` can take several minutes, and keeps the result lossless (png) on its way into the IMAGE tensor. |
+| FLUX 3 Image example workflow | — | New `workflows/BFL-API-flux-3-image.json`, built and saved with ComfyUI 0.37.0 (frontend 1.52.7): text-to-image with bounding boxes in the prompt, an edit with a reference given by URL (core **Text** node), and a style transfer that combines a local image (Load Image → Image to Base64, as Image 1) with a URL reference (Image 2). Groups are bypassed like the other examples. |
+
+### Fixed
+
+| Issue | Detail |
+|---|---|
+| Polling ignored the returned polling_url | BFL requires polling the `polling_url` from the submit response (it points at the region holding the task; FLUX 3 Image returns a regional one). `BaseFlux.post_request` now passes it to `get_result` along with the task id, for every node; the self-built `get_result?id=` is only a fallback when a response has none. |
+| Failed tasks reported as HTTP 503 were polled until timeout | FLUX 3 can report a failed task as HTTP 503 with a normal JSON body. A non-200 poll whose body carries `Error`, `Content Moderated` or `Request Moderated` now stops at once and logs the details instead of retrying to `max_attempts`. |
+
 ## [1.5.0] — 2026-09-26
 
 ### Added

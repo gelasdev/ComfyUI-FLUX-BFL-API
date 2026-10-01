@@ -12,6 +12,16 @@ from .status import Status
 REQUEST_TIMEOUT = 300  # seconds for connect + read
 
 
+class TaskId(str):
+    """Task id from post_request that also carries the submit response's polling_url.
+
+    BFL requires polling the returned polling_url (it points at the region holding the
+    task); as a str subclass, callers keep passing the id straight to get_result.
+    """
+
+    polling_url = None
+
+
 class BaseFlux:
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "generate_image"
@@ -66,19 +76,32 @@ class BaseFlux:
         print(f"[BFL] POST response: {response.status_code}")
 
         if response.status_code == 200:
-            task_id = response.json().get("id")
-            print(f"[BFL] Task ID: {task_id}")
+            body = response.json()
+            print(f"[BFL] Task ID: {body.get('id')}")
+            if not body.get("id"):
+                return None
+            task_id = TaskId(body["id"])
+            task_id.polling_url = body.get("polling_url")
             return task_id
         else:
             print(f"[BFL] Error initiating request: {response.status_code}, {response.text}")
             return None
+
+    @staticmethod
+    def _reports_terminal_status(response):
+        try:
+            status = response.json().get("status")
+        except (ValueError, AttributeError):
+            return False
+        return status in (Status.ERROR.value, Status.CONTENT_MODERATED.value, Status.REQUEST_MODERATED.value)
 
     def get_result(self, task_id, output_format="jpeg", max_attempts=40, config_override=None):
         # Use ConfigLoader with optional config override
         config_loader_instance = get_config_loader(config_override)
 
         headers = {"x-key": config_loader_instance.get_x_key()}
-        get_url = config_loader_instance.create_url(f"get_result?id={task_id}")
+        # Build get_result?id= only for a plain id without a returned polling_url (e.g. a caller's own POST)
+        get_url = getattr(task_id, "polling_url", None) or config_loader_instance.create_url(f"get_result?id={task_id}")
         attempt = 1
         start_time = time.time()
         print(f"[BFL] Polling task {task_id} (max {max_attempts} attempts, 5s interval)")
@@ -90,7 +113,9 @@ class BaseFlux:
                 result_response = requests.get(get_url, headers=headers, timeout=REQUEST_TIMEOUT)
                 print(f"[BFL] Poll response: {result_response.status_code}")
 
-                if result_response.status_code != 200:
+                # FLUX 3 reports some failed tasks as HTTP 503 with a normal JSON body: let those fall
+                # through to the terminal-status branch below instead of retrying until max_attempts
+                if result_response.status_code != 200 and not self._reports_terminal_status(result_response):
                     print(
                         f"[BFL] HTTP error on attempt {attempt}/{max_attempts}: "
                         f"{result_response.status_code}, {result_response.text}"
