@@ -909,6 +909,63 @@ class Flux3Image(BaseFlux):
             return self.create_blank_image()
 
 
+class Flux3ImageKlein(Flux3Image):
+    @classmethod
+    def INPUT_TYPES(cls):
+        types = super().INPUT_TYPES()
+        del types["required"]["grounding"]
+        types["required"]["safety_tolerance"] = ("INT", {"default": 2, "min": 0, "max": 7})
+        types["required"]["output_format"] = (["jpeg", "png"], {"default": "jpeg"})
+        types["required"]["steps"] = ("INT", {"default": 16, "min": 1, "max": 16})
+        size = ("INT", {
+            "default": 0, "min": 0, "max": 6256,
+            "tooltip": "0 = not sent. Set width and height together (64-6256) to override resolution and aspect_ratio"
+        })
+        types["optional"] = {
+            "width": size,
+            "height": size,
+            "seed": ("INT", {"default": -1}),
+            **types["optional"]
+        }
+        return types
+
+    def generate_image(self, prompt, resolution, aspect_ratio, safety_tolerance, output_format, steps,
+                       width=0, height=0, seed=-1, config=None, **images):
+        arguments = {"prompt": prompt}
+        connected = [name for name in self.IMAGE_SLOTS if images.get(name)]
+        if connected:
+            arguments["images"] = [images[name] for name in connected]
+            if connected != self.IMAGE_SLOTS[:len(connected)]:
+                print(f"[BFL] Warning: references {connected} skip a socket — BFL numbers them Image 1.."
+                      f"{len(connected)} in this order, so 'Image N' in the prompt shifts")
+        if width > 0 and height > 0:
+            arguments["width"] = width
+            arguments["height"] = height
+        elif width > 0 or height > 0:
+            print("[BFL] Warning: width and height must be set together — sending neither")
+        if resolution != "1k":
+            arguments["resolution"] = resolution
+        if aspect_ratio != "auto":
+            arguments["aspect_ratio"] = aspect_ratio
+        if safety_tolerance != 2:
+            arguments["safety_tolerance"] = safety_tolerance
+        if output_format != "jpeg":
+            arguments["output_format"] = output_format
+        if steps != 16:
+            arguments["steps"] = steps
+        if seed != -1:
+            arguments["seed"] = seed
+        try:
+            task_id = self.post_request("flux-3-image-klein", arguments, config)
+            if task_id:
+                return self.get_result(task_id, output_format=output_format, max_attempts=self.MAX_ATTEMPTS,
+                                       config_override=config)
+            return self.create_blank_image()
+        except Exception as e:
+            print(f"[BFL] Error generating image: {str(e)}")
+            return self.create_blank_image()
+
+
 class FluxCredits:
     RETURN_TYPES = ("STRING",)
     FUNCTION = "get_credits"
@@ -947,6 +1004,7 @@ NODE_CLASS_MAPPINGS = {
     "Flux2Klein9bPreview_BFL": Flux2Klein9bPreview,
     "Flux2Klein4b_BFL": Flux2Klein4b,
     "Flux3Image_BFL": Flux3Image,
+    "Flux3ImageKlein_BFL": Flux3ImageKlein,
     "FluxCredits_BFL": FluxCredits
 }
 
@@ -966,5 +1024,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Flux2Klein9bPreview_BFL": "Flux 2 Klein 9B Preview (BFL)",
     "Flux2Klein4b_BFL": "Flux 2 Klein 4B (BFL)",
     "Flux3Image_BFL": "Flux 3 Image (BFL)",
+    "Flux3ImageKlein_BFL": "Flux 3 Image Klein (BFL)",
     "FluxCredits_BFL": "Flux Credits (BFL)"
 }

@@ -42,7 +42,7 @@ Every BFL request is asynchronous: the node submits the job, then polls until th
 
 - The submit response contains a `polling_url`, and the node polls **that URL**. BFL requires this because it points at the region that holds your task (Flux 3 Image, for example, returns a regional one).
 - Only when a response has no `polling_url` does the node fall back to building `<base_url>get_result?id=<task_id>` itself, with the base URL from `config.ini` or the **Flux Config (BFL)** node.
-- Polls run every 5 s: up to 40 attempts (~200 s) for image nodes, 120 for **Flux 3 Image** (`4k` can take several minutes) and 240 for the video nodes. A terminal status (`Error`, `Request Moderated`, `Content Moderated`) stops polling at once, even when BFL reports it as HTTP 503, and the node returns a black placeholder so the workflow keeps running.
+- Polls run every 5 s: up to 40 attempts (~200 s) for image nodes, 120 for **Flux 3 Image** and **Flux 3 Image Klein** (`4k` can take several minutes) and 240 for the video nodes. A terminal status (`Error`, `Request Moderated`, `Content Moderated`) stops polling at once, even when BFL reports it as HTTP 503, and the node returns a black placeholder so the workflow keeps running.
 - Every poll is logged in the ComfyUI console as `[BFL] Poll attempt … | GET <url>`, so you can see which URL was used.
 
 ## Nodes
@@ -51,6 +51,7 @@ Every BFL request is asynchronous: the node submits the job, then polls until th
 | Node | Description |
 |---|---|
 | Flux 3 Image (BFL) | Text-to-image and editing with FLUX 3 in one node — up to 10 references (`image_1`…`image_10` are "Image 1"…"Image 10" in the prompt), bounding boxes as a JSON list at the end of the prompt, `768sq` to `4k` output (`flux-3-image`) |
+| Flux 3 Image Klein (BFL) | Open-weights 5.6B FLUX 3 — same prompt, 10 references and bounding boxes as Flux 3 Image, plus `seed`, `steps` (1–16), `output_format` and exact `width` × `height`; no grounding (`flux-3-image-klein`) |
 | Flux 3 Video T2V (BFL) | Text-to-video with FLUX 3 Video (up to 20 s, with audio) |
 | Flux 3 Video I2V (BFL) | Image-to-video — feed keyframes from the Flux 3 Keyframes node or a single image |
 | Flux 3 Video V2V (BFL) | Video continuation from an existing MP4 (URL or base64), up to 15 s |
