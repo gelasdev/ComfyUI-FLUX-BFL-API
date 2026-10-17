@@ -2,6 +2,15 @@
 
 All notable changes to this project from v1.1.0 onward are documented in this file. Earlier history lives in `git log`.
 
+## [1.7.0] — 2026-10-17
+
+### Added
+
+| Node / Feature | Endpoint | Notes |
+|---|---|---|
+| Flux 3 Image Klein (BFL) | `POST /v1/flux-3-image-klein` | BFL release 2026-10-15: the open-weights 5.6B FLUX 3 Image. Same prompt (bounding boxes as a JSON list at its end), `image_1`–`image_10` references, `resolution` and `aspect_ratio` as Flux 3 Image, and no `grounding`. Adds `seed` (-1 = random), `steps` (1–16), `output_format` (jpeg / png), an exact `width` × `height` (64–6256, sent only when both are set, overriding resolution and aspect ratio) and `safety_tolerance` 0–7. Optional fields are sent only when changed. Shares Flux 3 Image's 120-attempt polling ceiling. |
+| FLUX 3 Image Klein example workflow groups | — | `workflows/BFL-API-flux-3-image.json` gets two groups: **Klein — Text to Image** (bounding boxes, fixed seed) and **Klein — Edit an Image** (reference by URL). Appended only, so the existing nodes, links and groups are unchanged. The new groups are bypassed like the rest. Loaded in ComfyUI 0.37.0 (frontend 1.52.7). |
+
 ## [1.6.0] — 2026-10-02
 
 ### Added
