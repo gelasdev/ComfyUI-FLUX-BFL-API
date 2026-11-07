@@ -69,7 +69,12 @@ class BaseFlux:
         session = requests.Session()
         prepared = session.prepare_request(requests.Request("POST", post_url, json=arguments, headers=headers))
         body = prepared.body.decode() if isinstance(prepared.body, bytes) else prepared.body
-        headers_str = " \\\n    ".join(f"-H '{k}: {v}'" for k, v in prepared.headers.items())
+        # Never print the API key: the curl line is debug output and
+        # lands in console logs.
+        headers_str = " \\\n    ".join(
+            f"-H '{k}: {'***' if k.lower() == 'x-key' else v}'"
+            for k, v in prepared.headers.items()
+        )
         print(f"[BFL] curl -X POST '{prepared.url}' \\\n    {headers_str} \\\n    -d '{body}'")
 
         response = session.send(prepared, timeout=REQUEST_TIMEOUT)
