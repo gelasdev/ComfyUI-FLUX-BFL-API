@@ -2,6 +2,15 @@
 
 All notable changes to this project from v1.1.0 onward are documented in this file. Earlier history lives in `git log`.
 
+## [1.7.1] — 2026-11-07
+
+### Fixed
+
+| Issue | Detail |
+|---|---|
+| API key printed in the curl log | The debug curl line printed the full `x-key` header, so the API key landed in console logs. It now prints `x-key: ***`; the request itself is unchanged. Thanks to @ranas-mukminov (#20). |
+| Webhook secret printed in the curl log | The same line printed the request body as sent, including `webhook_secret`. The printed body now shows it as `***`; the request still sends the real value. |
+
 ## [1.7.0] — 2026-10-17
 
 ### Added
